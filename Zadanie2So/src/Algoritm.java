@@ -1,16 +1,39 @@
 import java.util.PriorityQueue;
 
 public abstract class Algoritm {
-    private int returns;
     private int starvedProcesses;
     private int starvationTreshold;
+    private Disk disk;
+    private int totalWaitingTime;
+    private int processesDone;
 
-    public Algoritm() {
-        this.returns = 0;
+    public Algoritm(Disk disk) {
         this.starvedProcesses = 0;
         this.starvationTreshold = 100000;
+        this.disk = disk;
+        this.totalWaitingTime = 0;
+        this.processesDone = 0;
     }
 
+    public int getTotalWaitTime() {
+        return totalWaitingTime;
+    }
+
+    public double getAverageWaitTime() {
+        return processesDone == 0 ? 0 : (double) totalWaitingTime / processesDone;
+    }
+
+    public void addWaitTime(int waitTime) {
+        totalWaitingTime += waitTime;
+    }
+
+    public void addDoneProcess() {
+        processesDone++;
+    }
+
+    public Disk getDisk() {
+        return disk;
+    }
 
     public int getStarvationTreshold() {
         return starvationTreshold;
@@ -20,19 +43,12 @@ public abstract class Algoritm {
         this.starvationTreshold = starvationTreshold;
     }
 
-    public int getReturns() {
-        return returns;
-    }
-
-    public void setReturns(int returns) {
-        this.returns = returns;
-    }
 
     public int getStarvedProcesses() {
         return starvedProcesses;
     }
 
-    public void setStarvedProcesses(int starvedProcesses) {
-        this.starvedProcesses = starvedProcesses;
+    public void starve() {
+        this.starvedProcesses++;
     }
 }

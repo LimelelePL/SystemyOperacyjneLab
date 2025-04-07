@@ -1,15 +1,15 @@
-import java.util.PriorityQueue;
+import java.util.List;
+
 
 public class FDSCAN extends Algoritm implements Scheduler{
 
 
-
-    public FDSCAN() {
-       super();
+    public FDSCAN(Disk disk) {
+        super(disk);
     }
 
     @Override
-    public void run() {
+    public void run(List<Process> processes) {
 
     }
 }
