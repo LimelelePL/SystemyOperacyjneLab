@@ -1,32 +1,23 @@
 import java.util.PriorityQueue;
 
 public abstract class Algoritm {
-    private int discplacement;
     private int returns;
-    private PriorityQueue<Process> processes;
     private int starvedProcesses;
+    private int starvationTreshold;
 
     public Algoritm() {
-        this.discplacement = 0;
         this.returns = 0;
-        this.processes = new PriorityQueue<>();
         this.starvedProcesses = 0;
+        this.starvationTreshold = 100000;
     }
 
-    public int getDiscplacement() {
-        return discplacement;
+
+    public int getStarvationTreshold() {
+        return starvationTreshold;
     }
 
-    public void setDiscplacement(int discplacement) {
-        this.discplacement = discplacement;
-    }
-
-    public PriorityQueue<Process> getProcesses() {
-        return processes;
-    }
-
-    public void setProcesses(PriorityQueue<Process> processes) {
-        this.processes = processes;
+    public void setStarvationTreshold(int starvationTreshold) {
+        this.starvationTreshold = starvationTreshold;
     }
 
     public int getReturns() {
