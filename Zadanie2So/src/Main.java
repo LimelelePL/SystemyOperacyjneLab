@@ -4,10 +4,10 @@ import java.util.List;
 
 public class Main {
     public static void main(String[] args) {
-        Disk disk = new Disk(53);
+        Disk disk = new Disk(53, 200);
         Generator generator = new Generator();
 
-        List<Process> queue= generator.generate(100,1000, disk.getMaxPosition(), 1000);
+        List<Process> queue= generator.generate(100, 200, 200, 1000);
 
         List<Process> processes=new ArrayList<>();
         processes.add(new Process("P1", 1, 98, 999));

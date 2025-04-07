@@ -1,16 +1,17 @@
 public class Disk {
     private int currentPosition;
     private int totalHeadMovements;
-    final static int MAX_POSITION=1000;
+    private int maxPosition;
     private int startPosition;
 
-    public Disk(int startPosition) {
+    public Disk(int startPosition, int maxPosition) {
         this.currentPosition=startPosition;
         this.totalHeadMovements = 0;
+        this.maxPosition = maxPosition;
     }
 
     public int moveTo(int newPosition) {
-        if(newPosition > MAX_POSITION) {
+        if(newPosition > maxPosition) {
             throw new IndexOutOfBoundsException("Wykoczono ponad maksymalna pozycje głowicy");
         }
 
@@ -35,7 +36,7 @@ public class Disk {
     }
 
     public int getMaxPosition() {
-        return MAX_POSITION;
+        return maxPosition;
     }
 
     public void reset() {
