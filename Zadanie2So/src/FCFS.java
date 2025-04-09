@@ -26,6 +26,7 @@ public class FCFS extends Algoritm implements Scheduler {
 
             process.setCompleted(true);
             addDoneProcess();
+
             addWaitTime(currentTime - process.getArrivalTime());
 
         }
