@@ -5,6 +5,7 @@ public class Process {
     private int deadline;
     private boolean isStarved;
     private boolean isCompleted;
+    private int distance;
 
     public Process(String processName, int arrivalTime, int cylinderNumber,int deadline) {
         this.processName = processName;
@@ -13,6 +14,14 @@ public class Process {
         this.deadline = deadline;
         this.isStarved = false;
         this.isCompleted = false;
+        this.distance = 0;
+    }
+
+    public int getDistance() {
+        return distance;
+    }
+    public void setDistance(int distance) {
+        this.distance = distance;
     }
 
     public boolean isCompleted() {

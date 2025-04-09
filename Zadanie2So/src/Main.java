@@ -10,19 +10,19 @@ public class Main {
         List<Process> queue= generator.generate(100, 200, 200, 1000);
 
         List<Process> processes=new ArrayList<>();
-        processes.add(new Process("P1", 1, 98, 999));
-        processes.add(new Process("P2", 2, 183, 999));
-        processes.add(new Process("P3", 3, 37, 999));
-        processes.add(new Process("P4", 4, 122, 999));
-        processes.add(new Process("P5", 5, 14, 999));
-        processes.add(new Process("P6", 6, 124, 999));
-        processes.add(new Process("P7", 7, 65, 999));
-        processes.add(new Process("P8", 8, 67, 999));
+        processes.add(new Process("P1", 0, 98, 999));
+        processes.add(new Process("P2", 0, 183, 999));
+        processes.add(new Process("P3", 0, 37, 999));
+        processes.add(new Process("P4", 0, 122, 999));
+        processes.add(new Process("P5", 0, 14, 999));
+        processes.add(new Process("P6", 0, 124, 999));
+        processes.add(new Process("P7", 0, 65, 999));
+        processes.add(new Process("P8", 0, 67, 999));
 
-        FCFS fcfs=new FCFS(disk);
-        fcfs.run(processes);
+        SSTF sstf =new SSTF(disk);
+        sstf.run(processes);
         System.out.println(disk.getTotalHeadMovements());
-        System.out.println(fcfs.getAverageWaitTime());
+        System.out.println(sstf.getAverageWaitTime());
         disk.reset();
     }
 }
