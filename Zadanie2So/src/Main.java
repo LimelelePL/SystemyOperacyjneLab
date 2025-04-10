@@ -19,10 +19,11 @@ public class Main {
         processes.add(new Process("P7", 0, 65, 999));
         processes.add(new Process("P8", 0, 67, 999));
 
-        SSTF sstf =new SSTF(disk);
-        sstf.run(processes);
+        SCAN scan =new SCAN(disk);
+        scan.run(processes);
         System.out.println(disk.getTotalHeadMovements());
-        System.out.println(sstf.getAverageWaitTime());
+        System.out.println(scan.getAverageWaitTime());
+        System.out.println(scan.getReturns());
         disk.reset();
     }
 }
