@@ -32,6 +32,7 @@ public class SSTF extends Algoritm implements Scheduler{
                calculateDistance(p,getDisk());
             }
 
+
             readyQueue.sort(Comparator.comparingInt(Process::getDistance));
             Process process = readyQueue.remove(0);
 
