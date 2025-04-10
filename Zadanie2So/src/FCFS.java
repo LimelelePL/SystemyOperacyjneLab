@@ -9,7 +9,6 @@ public class FCFS extends Algoritm implements Scheduler {
         super(disk);
     }
 
-
     @Override
     public void run(List<Process> processes) {
         Queue<Process> queue = new PriorityQueue<>(Comparator.comparingInt(Process::getArrivalTime));
@@ -21,7 +20,7 @@ public class FCFS extends Algoritm implements Scheduler {
 //czekam na proces jesli trzeba
             currentTime = Math.max(currentTime, process.getArrivalTime());
 
-            int movement=getDisk().moveTo(process.getCylinderNumber());
+            int movement = getDisk().moveTo(process.getCylinderNumber());
             currentTime += movement;
 
             process.setCompleted(true);
