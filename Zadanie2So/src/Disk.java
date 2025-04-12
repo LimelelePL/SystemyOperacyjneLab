@@ -23,6 +23,11 @@ public class Disk {
         return movement;
     }
 
+    public int increaseHeadMovements(int increment) {
+        totalHeadMovements+=increment;
+        return increment;
+    }
+
     public int getTimeToMove(int target) {
         return Math.abs(currentPosition - target);
     }
@@ -37,6 +42,10 @@ public class Disk {
 
     public int getMaxPosition() {
         return maxPosition;
+    }
+
+    public void setCurrentPosition(int currentPosition) {
+        this.currentPosition = currentPosition;
     }
 
     public void reset() {

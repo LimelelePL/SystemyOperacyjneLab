@@ -1,9 +1,16 @@
 import java.util.*;
 
-public class SSTF extends Algoritm implements Scheduler{
+public class SSTF extends Algoritm implements Scheduler {
+    private final SSTFMode mode;
 
-    public SSTF(Disk disk) {
+    public enum SSTFMode {
+        NORMAL,
+        EDF
+    }
+
+    public SSTF(Disk disk, SSTFMode mode) {
         super(disk);
+        this.mode = mode;
     }
 
     @Override
@@ -11,43 +18,77 @@ public class SSTF extends Algoritm implements Scheduler{
         Queue<Process> queue = new PriorityQueue<>(Comparator.comparingInt(Process::getArrivalTime));
         queue.addAll(processes);
 
-        int currentTime = 0;
-        List<Process> readyQueue=new ArrayList<>();
+        List<Process> readyQueue = new ArrayList<>();
 
-        while(!queue.isEmpty() || !readyQueue.isEmpty()) {
-        while(!queue.isEmpty() && queue.peek().getArrivalTime()<=currentTime) {
+        while (!queue.isEmpty() || !readyQueue.isEmpty()) {
+            int currentTime = getDisk().getTotalHeadMovements();
+
+            // Dodaj procesy, które już "przyszły"
+            while (!queue.isEmpty() && queue.peek().getArrivalTime() <= currentTime) {
                 readyQueue.add(queue.poll());
-        }
+            }
 
             if (readyQueue.isEmpty()) {
+                // Jeśli nic nie gotowe, przesuń czas do arrivalTime następnego procesu
                 if (!queue.isEmpty()) {
-                    currentTime = queue.peek().getArrivalTime();
-                } else {
-                    break;
+                    int nextArrival = queue.peek().getArrivalTime();
+                    int delta = nextArrival - currentTime;
+                    if (delta > 0) {
+                        getDisk().moveTo(getDisk().getCurrentPosition()); // żeby czas ruszył
+                    }
                 }
                 continue;
             }
 
-            for (Process p : readyQueue) {
-               calculateDistance(p,getDisk());
+            Process process = null;
+
+            if (mode == SSTFMode.EDF) {
+                // Szukamy real-time'ów z najkrótszym deadline
+                List<Process> realTime = new ArrayList<>();
+                for (Process p : readyQueue) {
+                    if (p.isRealTime()) {
+                        realTime.add(p);
+                    }
+                }
+
+                if (!realTime.isEmpty()) {
+                    realTime.sort(Comparator.comparingInt(Process::getDeadline));
+                    process = realTime.get(0);
+                }
             }
 
+            if (process == null) {
+                // Jeśli nie ma real-time (lub tryb NORMAL), wybieramy najbliższy cylinder
+                for (Process p : readyQueue) {
+                    calculateDistance(p, getDisk());
+                }
+                readyQueue.sort(Comparator.comparingInt(Process::getDistance));
+                process = readyQueue.get(0);
+            }
 
-            readyQueue.sort(Comparator.comparingInt(Process::getDistance));
-            Process process = readyQueue.remove(0);
+            readyQueue.remove(process);
 
             int movement = getDisk().moveTo(process.getCylinderNumber());
-            currentTime += movement;
 
-            process.setCompleted(true);
-            addDoneProcess();
-            addWaitTime(currentTime - process.getArrivalTime());
+            int waitTime = getDisk().getTotalHeadMovements() - process.getArrivalTime();
+            process.setWaitTime(waitTime);
+
+            if (waitTime >= getStarvationTreshold()) {
+                starve();
+                process.setCompleted(false);
+            } else {
+                process.setCompleted(true);
+                addDoneProcess();
+            }
+
+            addWaitTime(waitTime);
         }
     }
 
     public int calculateDistance(Process process, Disk disk) {
-        int distance= Math.abs(process.getCylinderNumber()-disk.getCurrentPosition());
+        int distance = Math.abs(process.getCylinderNumber() - disk.getCurrentPosition());
         process.setDistance(distance);
         return distance;
     }
 }
+

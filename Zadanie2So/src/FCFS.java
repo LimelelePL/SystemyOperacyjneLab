@@ -13,21 +13,13 @@ public class FCFS extends Algoritm implements Scheduler {
     public void run(List<Process> processes) {
         Queue<Process> queue = new PriorityQueue<>(Comparator.comparingInt(Process::getArrivalTime));
         queue.addAll(processes);
-        int currentTime = 0;
 
         while (!queue.isEmpty()) {
             Process process = queue.poll();
-//czekam na proces jesli trzeba
-            currentTime = Math.max(currentTime, process.getArrivalTime());
-
             int movement = getDisk().moveTo(process.getCylinderNumber());
-            currentTime += movement;
-
             process.setCompleted(true);
+            process.setWaitTime(getDisk().getTotalHeadMovements()-process.getArrivalTime());
             addDoneProcess();
-
-            addWaitTime(currentTime - process.getArrivalTime());
-
         }
     }
 }
