@@ -1,92 +1,59 @@
 import java.util.*;
 
-public class SSTF extends Algoritm implements Scheduler {
-    private final SSTFMode mode;
-
-    public enum SSTFMode {
-        NORMAL,
-        EDF
-    }
-
-    public SSTF(Disk disk, SSTFMode mode) {
+public class SSTF extends Algoritm {
+    public SSTF(Disk disk) {
         super(disk);
-        this.mode = mode;
     }
 
     @Override
     public void run(List<Process> processes) {
         Queue<Process> queue = new PriorityQueue<>(Comparator.comparingInt(Process::getArrivalTime));
         queue.addAll(processes);
-
         List<Process> readyQueue = new ArrayList<>();
+        Process process=null;
 
         while (!queue.isEmpty() || !readyQueue.isEmpty()) {
-            int currentTime = getDisk().getTotalHeadMovements();
 
-            // Dodaj procesy, które już "przyszły"
-            while (!queue.isEmpty() && queue.peek().getArrivalTime() <= currentTime) {
-                readyQueue.add(queue.poll());
-            }
+                while (!queue.isEmpty() && getDisk().getTotalHeadMovements() >= queue.peek().getArrivalTime()) {
+                    int distance = calculateDistance(queue.peek());
+                    System.out.println("Distance: " + distance + " proces " + queue.peek().getProcessName());
+                    readyQueue.add(queue.poll());
+                }
 
-            if (readyQueue.isEmpty()) {
-                // Jeśli nic nie gotowe, przesuń czas do arrivalTime następnego procesu
-                if (!queue.isEmpty()) {
-                    int nextArrival = queue.peek().getArrivalTime();
-                    int delta = nextArrival - currentTime;
-                    if (delta > 0) {
-                        getDisk().moveTo(getDisk().getCurrentPosition()); // żeby czas ruszył
+             if (readyQueue.isEmpty() && !queue.isEmpty()) { //niestety trzeba troche oszukac w pewnych przypadkach
+                getDisk().advanceTime(queue.peek().getArrivalTime() - getDisk().getTotalHeadMovements());
+             }
+
+            readyQueue.sort(Comparator.comparingInt(Process::getDistance));
+
+            if(!readyQueue.isEmpty()) { //kieruje glowice do elementu o najkrótszym dystansie
+                if(readyQueue.getFirst().getCylinderNumber()<getDisk().getCurrentPosition()){
+                    getDisk().decreaseCurrentPosition();
+                } else if (readyQueue.getFirst().getCylinderNumber()>getDisk().getCurrentPosition()){
+                    getDisk().increaseCurrentPosition();
+                } else {
+                    process=readyQueue.removeFirst();//tutaj glowica jest na miejscu szukanego procesu- poberam go i usuwam z kolejki
+                    System.out.println("pobieram proces " + process.getProcessName());
+                    System.out.println("aktualna pozycja " + getDisk().getCurrentPosition());
+                    System.out.println(" CALKOWITA CZAS  " + getDisk().getTotalHeadMovements());
+                }
+
+                if(process!=null) {
+                    if (completeProcesses(process)) {
+                        process.setCompleted(true);
+                        int waitTime = getDisk().getTotalHeadMovements() - process.getArrivalTime();
+                        process.setWaitTime(waitTime);
+                        addWaitTime(waitTime);
+                        addDoneProcess();
+                        process=null;
                     }
                 }
-                continue;
             }
-
-            Process process = null;
-
-            if (mode == SSTFMode.EDF) {
-                // Szukamy real-time'ów z najkrótszym deadline
-                List<Process> realTime = new ArrayList<>();
-                for (Process p : readyQueue) {
-                    if (p.isRealTime()) {
-                        realTime.add(p);
-                    }
-                }
-
-                if (!realTime.isEmpty()) {
-                    realTime.sort(Comparator.comparingInt(Process::getDeadline));
-                    process = realTime.get(0);
-                }
-            }
-
-            if (process == null) {
-                // Jeśli nie ma real-time (lub tryb NORMAL), wybieramy najbliższy cylinder
-                for (Process p : readyQueue) {
-                    calculateDistance(p, getDisk());
-                }
-                readyQueue.sort(Comparator.comparingInt(Process::getDistance));
-                process = readyQueue.get(0);
-            }
-
-            readyQueue.remove(process);
-
-            int movement = getDisk().moveTo(process.getCylinderNumber());
-
-            int waitTime = getDisk().getTotalHeadMovements() - process.getArrivalTime();
-            process.setWaitTime(waitTime);
-
-            if (waitTime >= getStarvationTreshold()) {
-                starve();
-                process.setCompleted(false);
-            } else {
-                process.setCompleted(true);
-                addDoneProcess();
-            }
-
-            addWaitTime(waitTime);
         }
     }
 
-    public int calculateDistance(Process process, Disk disk) {
-        int distance = Math.abs(process.getCylinderNumber() - disk.getCurrentPosition());
+    public int calculateDistance(Process process) {
+        int distance = Math.abs(process.getCylinderNumber() - getDisk().getCurrentPosition());
         process.setDistance(distance);
         return distance;
     }

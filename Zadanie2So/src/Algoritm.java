@@ -1,3 +1,4 @@
+import java.util.List;
 import java.util.PriorityQueue;
 
 public abstract class Algoritm {
@@ -13,6 +14,12 @@ public abstract class Algoritm {
         this.disk = disk;
         this.totalWaitingTime = 0;
         this.processesDone = 0;
+    }
+
+    public abstract void run(List<Process> processes);
+
+    public boolean completeProcesses(Process process) {
+        return (getDisk().getCurrentPosition()==process.getCylinderNumber());
     }
 
     public int getTotalWaitTime() {

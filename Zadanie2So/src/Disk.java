@@ -23,9 +23,30 @@ public class Disk {
         return movement;
     }
 
-    public int increaseHeadMovements(int increment) {
-        totalHeadMovements+=increment;
-        return increment;
+    public void increaseHeadMovements() {
+        totalHeadMovements++;
+    }
+
+    public void increaseCurrentPosition() {
+        if(currentPosition > maxPosition) {
+            throw new IndexOutOfBoundsException("Wykoczono ponad maksymalna pozycje głowicy");
+        }
+        currentPosition++;
+        increaseHeadMovements();
+    }
+
+    public void decreaseCurrentPosition() {
+        if(currentPosition > maxPosition) {
+            throw new IndexOutOfBoundsException("Wykoczono ponad maksymalna pozycje głowicy");
+        }
+        currentPosition--;
+        increaseHeadMovements();
+    }
+
+    public void advanceTime(int delta) {
+        if (delta > 0) {
+            totalHeadMovements += delta;
+        }
     }
 
     public int getTimeToMove(int target) {

@@ -3,12 +3,12 @@ import java.util.List;
 import java.util.Random;
 
 public class Generator {
-
+//dodac oszukany proces w arrival 0
     public List<Process> generateRandom(int maxArrivalTime, int maxCylinder, int count, int maxDeadline) {
         List<Process> processes = new ArrayList<>();
         Random random = new Random();
 
-        for (int i = 0; i < count; i++) {
+        for (int i = 1; i < count; i++) {
             int arrivalTime = random.nextInt(maxArrivalTime);
             int cylinder = random.nextInt(maxCylinder);
             int deadline = random.nextInt(maxDeadline);
