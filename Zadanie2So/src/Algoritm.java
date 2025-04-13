@@ -5,12 +5,12 @@ public abstract class Algoritm {
     private int starvedProcesses;
     private int starvationTreshold;
     private Disk disk;
-    private int totalWaitingTime;
+    private double totalWaitingTime;
     private int processesDone;
 
     public Algoritm(Disk disk) {
         this.starvedProcesses = 0;
-        this.starvationTreshold = 20000;
+        this.starvationTreshold = 35000;
         this.disk = disk;
         this.totalWaitingTime = 0;
         this.processesDone = 0;
@@ -22,7 +22,7 @@ public abstract class Algoritm {
         return (getDisk().getCurrentPosition()==process.getCylinderNumber());
     }
 
-    public int getTotalWaitTime() {
+    public double getTotalWaitTime() {
         return totalWaitingTime;
     }
 

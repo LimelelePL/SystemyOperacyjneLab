@@ -14,6 +14,7 @@ public class FCFS extends Algoritm {
         Queue<Process> queue = new PriorityQueue<>(Comparator.comparingInt(Process::getArrivalTime));
         queue.addAll(processes);
         Process process = null;
+        int currentTime=0;
 
         while (!queue.isEmpty() || process != null) {
 

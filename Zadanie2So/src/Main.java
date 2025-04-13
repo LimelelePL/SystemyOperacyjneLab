@@ -6,9 +6,9 @@ public class Main {
         Generator generator = new Generator();
 
         // Standardowe generatory procesów
-        List<Process> randomList = generator.generateRandom(1000, 199, 5000, 20000);
-        List<Process> oneSide   = generator.generateInOneSide(1000, 199, 5000, 20000);
-        List<Process> bothSides = generator.generateInBothEdges(1000, 199, 5000, 20000);
+        List<Process> randomList = generator.generateRandom(0.025, 500, 5000, 20000);
+        List<Process> oneSide   = generator.generateInOneSide(0.025, 500, 5000, 20000);
+        List<Process> bothSides = generator.generateInBothEdges(0.025, 500, 5000, 20000);
 
         // Listy procesów do standardowych testów
         ArrayList<List<Process>> standardGeneratedLists = new ArrayList<>();
@@ -23,12 +23,12 @@ public class Main {
         standardGeneratorNames.add("Both Edges");
 
         // Tworzenie instancji algorytmów z dyskiem o bieżącej głowicy w pozycji 53 i maksymalnej pozycji 200
-        FCFS fcfs   = new FCFS(new Disk(53, 200));
-        SSTF sstf   = new SSTF(new Disk(53, 200));
-        EDF edf     = new EDF(new Disk(53, 200));
-        CSCAN cscan = new CSCAN(new Disk(53, 200));
-        SCAN scan   = new SCAN(new Disk(53, 200));
-        FDScan fdscan = new FDScan(new Disk(53, 200));
+        FCFS fcfs   = new FCFS(new Disk(53, 500));
+        SSTF sstf   = new SSTF(new Disk(53, 500));
+        EDF edf     = new EDF(new Disk(53, 500));
+        CSCAN cscan = new CSCAN(new Disk(53, 500));
+        SCAN scan   = new SCAN(new Disk(53, 500));
+        FDScan fdscan = new FDScan(new Disk(53, 500));
 
         // Część 1: Standardowe testy dla wszystkich algorytmów
         System.out.println("===================== STANDARDOWE TESTY DLA WSZYSTKICH ALGORYTMÓW =====================");
@@ -42,12 +42,10 @@ public class Main {
         // Część 2: Specjalne testy dla algorytmu SCAN z wykorzystaniem generatora generującego procesy za głowicą
         System.out.println("\n===================== SPECJALNE TESTY DLA ALGORYTMU SCAN (Procesy za głowicą) =====================");
 
-        // Używamy nowego generatora: przyjmujemy, że głowica jest w pozycji 53 i jedzie w górę,
-        // dlatego generujemy procesy z cylindrami mniejszymi od 53.
-        List<Process> behindHead = generator.generateBehindHead(1000, 199, 5000, 20000, 53, false);
+        List<Process> behindHead = generator.generateBehindHead(500, 5000, 20000, 53,  true);
 
         // Tworzymy nową instancję SCAN oraz resetujemy stan dysku
-        SCAN specialScan = new SCAN(new Disk(53, 200));
+        SCAN specialScan = new SCAN(new Disk(3, 500));
         specialScan.getDisk().reset();
         specialScan.reset();
 
