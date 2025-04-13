@@ -55,7 +55,6 @@ public class EDF extends Algoritm {
                     currentProcess = readyQueue.remove(0);
                 }
 
-                // Jeśli proces jest w trakcie obsługi (głowica na właściwym cylindrze)
                 if (currentProcess != null) {
                     if (completeProcesses(currentProcess)) {
                         currentProcess.setCompleted(true);
@@ -87,7 +86,7 @@ public class EDF extends Algoritm {
                 if (currentTime > p.getDeadline()) {
                     p.setStarved(true);
                     it.remove();
-                    starved++;
+                    starve();
                 }
             }
         }

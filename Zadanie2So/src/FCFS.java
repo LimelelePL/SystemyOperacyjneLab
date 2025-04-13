@@ -17,10 +17,8 @@ public class FCFS extends Algoritm {
 
         while (!queue.isEmpty() || process != null) {
 
-        if(getDisk().getTotalHeadMovements()>=queue.peek().getArrivalTime() && process==null) { //pobieram najwczesniejszy proces
+        if(process == null && !queue.isEmpty() && getDisk().getTotalHeadMovements()>=queue.peek().getArrivalTime()) { //pobieram najwczesniejszy proces
             process = queue.poll();
-            System.out.println("Pobieram proces " + process.getProcessName());
-            System.out.println("aktualna pozycja " + getDisk().getCurrentPosition());
         }
 
             if(process!=null) { //przesuwamy glowice w odpowiednie miejsce

@@ -10,7 +10,7 @@ public abstract class Algoritm {
 
     public Algoritm(Disk disk) {
         this.starvedProcesses = 0;
-        this.starvationTreshold = 15000;
+        this.starvationTreshold = 20000;
         this.disk = disk;
         this.totalWaitingTime = 0;
         this.processesDone = 0;
@@ -57,5 +57,12 @@ public abstract class Algoritm {
 
     public void starve() {
         this.starvedProcesses++;
+    }
+
+    public void reset(){
+        this.starvedProcesses = 0;
+        this.starvationTreshold = 20000;
+        this.totalWaitingTime = 0;
+        this.processesDone = 0;
     }
 }

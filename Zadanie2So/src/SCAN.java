@@ -83,4 +83,5 @@ public class SCAN extends Algoritm {
     public boolean isGoingUp() {
         return goingUp;
     }
+
 }

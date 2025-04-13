@@ -13,29 +13,35 @@ public class CSCAN extends Algoritm{
         ArrayList<Process> readyQueue = new ArrayList<>();
         Process process=null;
 
-        while(!queue.isEmpty() || !readyQueue.isEmpty() || process!=null) {
+
+        while(!queue.isEmpty() || !readyQueue.isEmpty() || process!=null)  {
             while(!queue.isEmpty() && queue.peek().getArrivalTime()<=getDisk().getTotalHeadMovements()) {
                 readyQueue.add(queue.poll());
             }
-            getDisk().increaseCurrentPosition();
+
             readyQueue.sort(Comparator.comparingInt(Process::getCylinderNumber));
 
-            for (Process p : readyQueue) {
+            if (readyQueue.isEmpty() && !queue.isEmpty()) { //niestety trzeba troche oszukac w pewnych przypadkach
+                getDisk().advanceTime(queue.peek().getArrivalTime() - getDisk().getTotalHeadMovements());
+            }
+
+
+            for (int k=0; k<readyQueue.size(); k++) {
+                Process p = readyQueue.get(k);
                     if(p.getCylinderNumber()==getDisk().getCurrentPosition()){
-                        process=p;
+                        process=readyQueue.remove(k);
                         break;
                     }
                 }
-                readyQueue.remove(process);
-
+            getDisk().increaseCurrentPosition();
                 if(process!=null) {
                     if(completeProcesses(process)) {
                         process.setWaitTime(getDisk().getTotalHeadMovements() - process.getArrivalTime());
                         if (process.getWaitTime() >= getStarvationTreshold()) {
                             starve();
-                            process.setCompleted(false);
                         }
                         process.setCompleted(true);
+                        addWaitTime(getDisk().getTotalHeadMovements() - process.getArrivalTime());
                         addDoneProcess();
                         process=null;
                     }

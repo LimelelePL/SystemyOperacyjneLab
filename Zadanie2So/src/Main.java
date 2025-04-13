@@ -1,38 +1,102 @@
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class Main {
     public static void main(String[] args) {
-        Disk disk = new Disk(53, 199);
-        Generator generator=new Generator();
-        List<Process> d= generator.generateRandom(1000,199,5000,  1500);
-        List<Process> processes=new ArrayList<>();
-        processes.add(new Process("P1", 1, 98, 999, false));
-        processes.add(new Process("P2", 2, 183, 999,false));
-        processes.add(new Process("P3", 3, 37, 999,true));
-        processes.add(new Process("P4", 4, 122, 999,true));
-        processes.add(new Process("P5", 5, 14, 999,false));
-        processes.add(new Process("P6", 6, 124, 999,false));
-        processes.add(new Process("P7", 7, 65, 999,true));
-        processes.add(new Process("P8", 8, 67, 999,false));
+        Generator generator = new Generator();
 
-        EDF scan =new EDF(disk);
-        System.out.println("EDF");
-        scan.run(new ArrayList<>(d));
-        System.out.println("total head movements " + disk.getTotalHeadMovements());
-        System.out.println("avg waititme " + scan.getAverageWaitTime());
-        System.out.println("staverd " +  scan.getStarved());
-        disk.reset();
+        // Standardowe generatory procesów
+        List<Process> randomList = generator.generateRandom(1000, 199, 5000, 20000);
+        List<Process> oneSide   = generator.generateInOneSide(1000, 199, 5000, 20000);
+        List<Process> bothSides = generator.generateInBothEdges(1000, 199, 5000, 20000);
 
-        SSTF scan1 =new SSTF(disk);
-        scan1.run(new ArrayList<>(d));
-        System.out.println("SSTF");
-        System.out.println("total head movements " + disk.getTotalHeadMovements());
-        System.out.println("avg waititme " + scan1.getAverageWaitTime());
-        System.out.println("staverd " +  scan1.getStarvedProcesses());
-        disk.reset();
+        // Listy procesów do standardowych testów
+        ArrayList<List<Process>> standardGeneratedLists = new ArrayList<>();
+        standardGeneratedLists.add(randomList);
+        standardGeneratedLists.add(oneSide);
+        standardGeneratedLists.add(bothSides);
 
+        // Nazwy generatorów do wypisania wyników
+        ArrayList<String> standardGeneratorNames = new ArrayList<>();
+        standardGeneratorNames.add("Random");
+        standardGeneratorNames.add("OneSide");
+        standardGeneratorNames.add("Both Edges");
+
+        // Tworzenie instancji algorytmów z dyskiem o bieżącej głowicy w pozycji 53 i maksymalnej pozycji 200
+        FCFS fcfs   = new FCFS(new Disk(53, 200));
+        SSTF sstf   = new SSTF(new Disk(53, 200));
+        EDF edf     = new EDF(new Disk(53, 200));
+        CSCAN cscan = new CSCAN(new Disk(53, 200));
+        SCAN scan   = new SCAN(new Disk(53, 200));
+        FDScan fdscan = new FDScan(new Disk(53, 200));
+
+        // Część 1: Standardowe testy dla wszystkich algorytmów
+        System.out.println("===================== STANDARDOWE TESTY DLA WSZYSTKICH ALGORYTMÓW =====================");
+        runTests(fcfs, standardGeneratedLists, standardGeneratorNames, false);
+        runTests(sstf, standardGeneratedLists, standardGeneratorNames, false);
+        runTests(edf, standardGeneratedLists, standardGeneratorNames, false);
+        runTests(cscan, standardGeneratedLists, standardGeneratorNames, true);
+        runTests(scan, standardGeneratedLists, standardGeneratorNames, true);
+        runTests(fdscan, standardGeneratedLists, standardGeneratorNames, true);
+
+        // Część 2: Specjalne testy dla algorytmu SCAN z wykorzystaniem generatora generującego procesy za głowicą
+        System.out.println("\n===================== SPECJALNE TESTY DLA ALGORYTMU SCAN (Procesy za głowicą) =====================");
+
+        // Używamy nowego generatora: przyjmujemy, że głowica jest w pozycji 53 i jedzie w górę,
+        // dlatego generujemy procesy z cylindrami mniejszymi od 53.
+        List<Process> behindHead = generator.generateBehindHead(1000, 199, 5000, 20000, 53, false);
+
+        // Tworzymy nową instancję SCAN oraz resetujemy stan dysku
+        SCAN specialScan = new SCAN(new Disk(53, 200));
+        specialScan.getDisk().reset();
+        specialScan.reset();
+
+        System.out.println("------ SCAN z procesami generowanymi za głowicą (behind head) ------");
+        specialScan.run(new ArrayList<>(behindHead));
+        printTestResults(specialScan, true);
+    }
+
+    public static void runTests(Algoritm algorithm, List<List<Process>> generatedLists, ArrayList<String> generatorNames, boolean showReturns) {
+        System.out.println("================== " + algorithm.getClass().getName() + " ===============================");
+        int index = 0;
+        for (List<Process> processes : generatedLists) {
+            // Resetowanie stanu dysku przed każdym testem
+            algorithm.getDisk().reset();
+            algorithm.reset();
+
+            System.out.println("------ GENERATOR: " + generatorNames.get(index) + " ------");
+            algorithm.run(new ArrayList<>(processes));
+
+            System.out.println("Total head movements: " + algorithm.getDisk().getTotalHeadMovements());
+            System.out.println("Average wait time: " + algorithm.getAverageWaitTime());
+            System.out.println("Starved processes: " + algorithm.getStarvedProcesses());
+
+            if (showReturns) {
+                if (algorithm instanceof CSCAN) {
+                    System.out.println("Returns: " + ((CSCAN) algorithm).getReturns());
+                } else if (algorithm instanceof SCAN) {
+                    System.out.println("Returns: " + ((SCAN) algorithm).getReturns());
+                } else if (algorithm instanceof FDScan) {
+                    System.out.println("Returns: " + ((FDScan) algorithm).getReturns());
+                }
+            }
+            index++;
+        }
+    }
+
+    public static void printTestResults(Algoritm algorithm, boolean showReturns) {
+        System.out.println("Total head movements: " + algorithm.getDisk().getTotalHeadMovements());
+        System.out.println("Average wait time: " + algorithm.getAverageWaitTime());
+        System.out.println("Starved processes: " + algorithm.getStarvedProcesses());
+
+        if (showReturns) {
+            if (algorithm instanceof CSCAN) {
+                System.out.println("Returns: " + ((CSCAN) algorithm).getReturns());
+            } else if (algorithm instanceof SCAN) {
+                System.out.println("Returns: " + ((SCAN) algorithm).getReturns());
+            } else if (algorithm instanceof FDScan) {
+                System.out.println("Returns: " + ((FDScan) algorithm).getReturns());
+            }
+        }
     }
 }
-

@@ -56,7 +56,6 @@ public class FDScan extends Algoritm {
                                 break;
                             } else {
                                 deadlineQueue.remove(i);
-                                starve();
                                 i--;
                             }
                         }
@@ -70,7 +69,6 @@ public class FDScan extends Algoritm {
                                 break;
                             } else {
                                 deadlineQueue.remove(i);
-                                starve();
                                 i--;
                             }
                         }
