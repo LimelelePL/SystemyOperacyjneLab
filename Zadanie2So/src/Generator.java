@@ -7,7 +7,7 @@ public class Generator {
     public List<Process> generateRandom(int maxArrivalTime, int maxCylinder, int count, int maxDeadline) {
         List<Process> processes = new ArrayList<>();
         Random random = new Random();
-
+        processes.add(new Process("P0", 0, 1, 20000, true));
         for (int i = 1; i < count; i++) {
             int arrivalTime = random.nextInt(maxArrivalTime);
             int cylinder = random.nextInt(maxCylinder);
@@ -23,11 +23,11 @@ public class Generator {
     public List<Process> generateInOneSide(int maxArrivalTime, int maxCylinder, int count, int maxDeadline) {
         List<Process> processes = new ArrayList<>();
         Random random = new Random();
-
-        for (int i = 0; i < count; i++) {
+        processes.add(new Process("P0", 0, 1, 20000, true));
+        for (int i = 1; i < count; i++) {
             int arrivalTime = random.nextInt(maxArrivalTime);
             int cylinder = random.nextInt(maxCylinder - 50, maxCylinder);
-            int deadline = random.nextInt(maxDeadline);
+            int deadline = random.nextInt(maxDeadline*200);
             String name = "P" + i;
             boolean isRealTime = random.nextBoolean();
             processes.add(new Process(name, arrivalTime, cylinder, deadline, isRealTime));
@@ -40,11 +40,11 @@ public class Generator {
         Random random = new Random();
         int rightCount = (int) (count * 0.75);
         int leftCount = count - rightCount;
-
-        for (int i = 0; i < leftCount; i++) {
+        processes.add(new Process("P0", 0, 1, 20000, true));
+        for (int i = 1; i < leftCount; i++) {
             int arrivalTime = random.nextInt(maxArrivalTime);
             int cylinder = random.nextInt(0, 50);
-            int deadline = random.nextInt(maxDeadline);
+            int deadline = random.nextInt(maxDeadline*200);
             String name = "P" + i;
             boolean isRealTime = random.nextBoolean();
             processes.add(new Process(name, arrivalTime, cylinder, deadline, isRealTime));
@@ -53,7 +53,7 @@ public class Generator {
         for (int i = 0; i < rightCount; i++) {
             int arrivalTime = random.nextInt(maxArrivalTime);
             int cylinder = random.nextInt(maxCylinder - 50, maxCylinder);
-            int deadline = random.nextInt(maxDeadline);
+            int deadline = random.nextInt(maxDeadline*200);
             String name = "P" + (i + leftCount);
             boolean isRealTime = random.nextBoolean();
             processes.add(new Process(name, arrivalTime, cylinder, deadline, isRealTime));
@@ -64,8 +64,8 @@ public class Generator {
     public List<Process> generateBeforeHead(int maxArrivalTime, int maxCylinder, int count, int maxDeadline, int currentHead) {
         List<Process> processes = new ArrayList<>();
         Random random = new Random();
-
-        for (int i = 0; i < count; i++) {
+        processes.add(new Process("P0", 0, 1, 20000, true));
+        for (int i = 1; i < count; i++) {
             int arrivalTime = random.nextInt(maxArrivalTime);
             int cylinder;
             if (currentHead < maxCylinder - 1) {
@@ -73,7 +73,7 @@ public class Generator {
             } else {
                 cylinder = currentHead;
             }
-            int deadline = random.nextInt(maxDeadline);
+            int deadline = random.nextInt(maxDeadline*200);
             String name = "P" + i;
             boolean isRealTime = random.nextBoolean();
             processes.add(new Process(name, arrivalTime, cylinder, deadline, isRealTime));

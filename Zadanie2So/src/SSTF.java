@@ -14,15 +14,14 @@ public class SSTF extends Algoritm {
 
         while (!queue.isEmpty() || !readyQueue.isEmpty() || process != null) {
 
-                while (!queue.isEmpty() && getDisk().getTotalHeadMovements() >= queue.peek().getArrivalTime()) {
-                    int distance = calculateDistance(queue.peek());
-                    System.out.println("Distance: " + distance + " proces " + queue.peek().getProcessName());
-                    readyQueue.add(queue.poll());
-                }
+            while (!queue.isEmpty() && getDisk().getTotalHeadMovements() >= queue.peek().getArrivalTime()) {
+                int distance = calculateDistance(queue.peek());
+                readyQueue.add(queue.poll());
+            }
 
-             if (readyQueue.isEmpty() && !queue.isEmpty()) { //niestety trzeba troche oszukac w pewnych przypadkach
+            if (readyQueue.isEmpty() && !queue.isEmpty()) { //niestety trzeba troche oszukac w pewnych przypadkach
                 getDisk().advanceTime(queue.peek().getArrivalTime() - getDisk().getTotalHeadMovements());
-             }
+            }
 
             readyQueue.sort(Comparator.comparingInt(Process::getDistance));
 
@@ -33,9 +32,6 @@ public class SSTF extends Algoritm {
                     getDisk().increaseCurrentPosition();
                 } else {
                     process=readyQueue.removeFirst();//tutaj glowica jest na miejscu szukanego procesu- poberam go i usuwam z kolejki
-                    System.out.println("pobieram proces " + process.getProcessName());
-                    System.out.println("aktualna pozycja " + getDisk().getCurrentPosition());
-                    System.out.println(" CALKOWITA CZAS  " + getDisk().getTotalHeadMovements());
                 }
 
                 if(process!=null) {
