@@ -15,7 +15,7 @@ public class FCFS extends Algoritm {
         queue.addAll(processes);
         Process process = null;
 
-        while (!queue.isEmpty()) {
+        while (!queue.isEmpty() || process != null) {
 
         if(getDisk().getTotalHeadMovements()>=queue.peek().getArrivalTime() && process==null) { //pobieram najwczesniejszy proces
             process = queue.poll();

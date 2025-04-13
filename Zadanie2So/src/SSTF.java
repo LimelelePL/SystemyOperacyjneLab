@@ -12,7 +12,7 @@ public class SSTF extends Algoritm {
         List<Process> readyQueue = new ArrayList<>();
         Process process=null;
 
-        while (!queue.isEmpty() || !readyQueue.isEmpty()) {
+        while (!queue.isEmpty() || !readyQueue.isEmpty() || process != null) {
 
                 while (!queue.isEmpty() && getDisk().getTotalHeadMovements() >= queue.peek().getArrivalTime()) {
                     int distance = calculateDistance(queue.peek());

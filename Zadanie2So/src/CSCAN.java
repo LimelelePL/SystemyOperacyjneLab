@@ -13,7 +13,7 @@ public class CSCAN extends Algoritm{
         ArrayList<Process> readyQueue = new ArrayList<>();
         Process process=null;
 
-        while(!queue.isEmpty() || !readyQueue.isEmpty()) {
+        while(!queue.isEmpty() || !readyQueue.isEmpty() || process!=null) {
             while(!queue.isEmpty() && queue.peek().getArrivalTime()<=getDisk().getTotalHeadMovements()) {
                 readyQueue.add(queue.poll());
             }
