@@ -39,12 +39,10 @@ public class Main {
         runTests(scan, standardGeneratedLists, standardGeneratorNames, true);
         runTests(fdscan, standardGeneratedLists, standardGeneratorNames, true);
 
-        // Część 2: Specjalne testy dla algorytmu SCAN z wykorzystaniem generatora generującego procesy za głowicą
         System.out.println("\n===================== SPECJALNE TESTY DLA ALGORYTMU SCAN (Procesy za głowicą) =====================");
 
         List<Process> behindHead = generator.generateBehindHead(500, 5000, 20000, 53,  true);
 
-        // Tworzymy nową instancję SCAN oraz resetujemy stan dysku
         SCAN specialScan = new SCAN(new Disk(3, 500));
         specialScan.getDisk().reset();
         specialScan.reset();
@@ -58,7 +56,6 @@ public class Main {
         System.out.println("================== " + algorithm.getClass().getName() + " ===============================");
         int index = 0;
         for (List<Process> processes : generatedLists) {
-            // Resetowanie stanu dysku przed każdym testem
             algorithm.getDisk().reset();
             algorithm.reset();
 

@@ -18,9 +18,7 @@ public class FDScan extends Algoritm {
         Process process = null;
         Process target = null;
 
-        // Pętla główna działa dopóki mamy jakieś zadania do przetworzenia
         while (!readyQueue.isEmpty() || !arrivalQueue.isEmpty() || process != null || target != null) {
-            // Dodaj nowe przybycia do kolejki gotowych procesów
             while (!arrivalQueue.isEmpty() &&
                     arrivalQueue.peek().getArrivalTime() <= getDisk().getTotalHeadMovements()) {
                 readyQueue.add(arrivalQueue.poll());
@@ -38,14 +36,14 @@ public class FDScan extends Algoritm {
 
             deadlineQueue.sort(Comparator.comparingInt(Process::getDeadline));
 
-            // Zaktualizuj pozycję głowicy zgodnie z kierunkiem ruchu
+            //przesuwamy glowice zgodnie z kierunkiem ruchu
             if (goingUp) {
                 getDisk().increaseCurrentPosition();
             } else {
                 getDisk().decreaseCurrentPosition();
             }
 
-            // Wybór procesu real-time w zależności od kierunku
+            // Wybór procesu realtime w zależności od kierunku
             if (target == null && !deadlineQueue.isEmpty()) {
                 if (goingUp) {
                     for (int i = 0; i < deadlineQueue.size(); i++) {
@@ -76,7 +74,7 @@ public class FDScan extends Algoritm {
                 }
             }
 
-            // Jeśli nie ma docelowego procesu real-time, wybierz zwykły proces
+            // Jeśli nie ma docelowego procesu realtime bierzemy zwykly proces?
             if (process == null && !readyQueue.isEmpty()) {
                 if (goingUp) {
                     for (int i = 0; i < readyQueue.size(); i++) {
@@ -97,7 +95,7 @@ public class FDScan extends Algoritm {
                 }
             }
 
-            // Obsługa procesu real-time (target)
+            // Obsługa targetu
             if (target != null) {
                 if (completeProcesses(target)) {
                     int waitTime = getDisk().getTotalHeadMovements() - target.getArrivalTime();
@@ -131,7 +129,7 @@ public class FDScan extends Algoritm {
                 }
             }
 
-            // Sprawdzenie warunków zmiany kierunku, jeżeli głowica osiągnie krawędź dysku
+            // Sprawdzenie warunków zmiany kierunku
             if (goingUp && getDisk().getCurrentPosition() >= getDisk().getMaxPosition()) {
                 goingUp = false;
                 returns++;

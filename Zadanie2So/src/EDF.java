@@ -41,11 +41,11 @@ public class EDF extends Algoritm {
                 return Integer.compare(p1.getDistance(), p2.getDistance());
             });
 
-            // 5. Jeżeli w readyQueue jest jakiś proces – "kierujemy głowicę" do pierwszego
+            //bierzemy 1 proces z readyqueue
             if (!readyQueue.isEmpty()) {
                 Process first = readyQueue.get(0);
 
-                // Przesuń głowicę o jeden cylinder w kierunku docelowego
+             //przesuwany glowice
                 if (first.getCylinderNumber() < getDisk().getCurrentPosition()) {
                     getDisk().decreaseCurrentPosition();
                 } else if (first.getCylinderNumber() > getDisk().getCurrentPosition()) {

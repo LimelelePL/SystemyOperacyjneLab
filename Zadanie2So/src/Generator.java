@@ -7,7 +7,6 @@ public class Generator {
 
     private Random random = new Random();
 
-    // Metoda pomocnicza generująca czas według rozkładu wykładniczego
     private int getExponentialArrivalTime(double lambda) {
         return (int) Math.round(-Math.log(1 - random.nextDouble()) / lambda);
     }
@@ -57,7 +56,6 @@ public class Generator {
 
         int currentArrivalTime = 0;
 
-        // Lewa strona
         for (int i = 1; i < leftCount; i++) {
             currentArrivalTime += getExponentialArrivalTime(lambda);
 
@@ -69,7 +67,6 @@ public class Generator {
             processes.add(new Process(name, currentArrivalTime, cylinder, deadline, isRealTime));
         }
 
-        // Prawa strona
         for (int i = leftCount; i < count; i++) {
             currentArrivalTime += getExponentialArrivalTime(lambda);
 
