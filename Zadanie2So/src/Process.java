@@ -88,11 +88,6 @@ public class Process implements Comparable<Process> {
         this.waitTime = waitTime;
     }
 
-    public boolean isFeasible(int currentTime, int headPosition) {
-        int travelTime = Math.abs(headPosition - this.cylinderNumber);
-        return (currentTime + travelTime) <= deadline;
-    }
-
     @Override
     public int compareTo(Process other) {
         return Integer.compare(this.arrivalTime, other.arrivalTime);

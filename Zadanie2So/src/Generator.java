@@ -11,7 +11,7 @@ public class Generator {
         for (int i = 1; i < count; i++) {
             int arrivalTime = random.nextInt(maxArrivalTime);
             int cylinder = random.nextInt(maxCylinder);
-            int deadline = random.nextInt(maxDeadline);
+            int deadline = random.nextInt(maxDeadline*200);
             String name = "P" + i;
             boolean isRealTime = random.nextBoolean();
 

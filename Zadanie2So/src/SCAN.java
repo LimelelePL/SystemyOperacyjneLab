@@ -1,7 +1,6 @@
 import java.util.*;
 
 public class SCAN extends Algoritm {
-
     private int returns = 0;
     private boolean goingUp = false;
 
@@ -20,7 +19,6 @@ public class SCAN extends Algoritm {
         while(!readyQueue.isEmpty() || !arrivalQueue.isEmpty() || process!=null) {
 
             while (!arrivalQueue.isEmpty() && arrivalQueue.peek().getArrivalTime()<=getDisk().getTotalHeadMovements()) {
-                System.out.println("dodaje do kolejki " + arrivalQueue.peek().getProcessName() );
                 readyQueue.add(arrivalQueue.poll());
             }
 
@@ -34,6 +32,7 @@ public class SCAN extends Algoritm {
             }
 
             //pobieram tutaj proces
+
             if(process==null && !readyQueue.isEmpty()) {
                 if(goingUp) {
                     for (int i=0; i<readyQueue.size(); i++) {
@@ -63,11 +62,7 @@ public class SCAN extends Algoritm {
                     }
                     process.setCompleted(true);
                     addDoneProcess();
-                    System.out.println("koncze proces " + process.getProcessName());
-                    System.out.println("aktualna pozycja " + getDisk().getCurrentPosition());
-                    System.out.println("totalhead " + getDisk().getTotalHeadMovements());
                     process=null;
-                    System.out.println("ustawiam na nulla");
                 }
             }
 
@@ -75,15 +70,12 @@ public class SCAN extends Algoritm {
             if (goingUp && getDisk().getCurrentPosition() >= getDisk().getMaxPosition()) {
                     goingUp = false;
                     returns++;
-                    System.out.println("RETURN");
                 } else if (!goingUp && getDisk().getCurrentPosition() <= 0) {
                     goingUp = true;
                     returns++;
-                    System.out.println("RETURN");
                 }
         }
     }
-
     public int getReturns() {
         return returns;
     }
