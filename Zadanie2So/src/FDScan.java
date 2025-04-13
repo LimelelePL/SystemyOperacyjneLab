@@ -101,13 +101,15 @@ public class FDScan extends Algoritm {
                     int waitTime = getDisk().getTotalHeadMovements() - target.getArrivalTime();
                     target.setWaitTime(waitTime);
                     addWaitTime(waitTime);
+                    if(getAverageWaitTime()>getStarvationTreshold()) {
+                        setStarvationTreshold((int) (getAverageWaitTime()*10));
+                    }
                     if (target.getWaitTime() > getStarvationTreshold()) {
                         starve();
                         target.setCompleted(false);
-                    } else {
+                    }
                         target.setCompleted(true);
                         addDoneProcess();
-                    }
                     target = null;
                 }
             }
@@ -118,13 +120,15 @@ public class FDScan extends Algoritm {
                     int waitTime = getDisk().getTotalHeadMovements() - process.getArrivalTime();
                     process.setWaitTime(waitTime);
                     addWaitTime(waitTime);
+                    if(getAverageWaitTime()>getStarvationTreshold()) {
+                        setStarvationTreshold((int) (getAverageWaitTime()*10));
+                    }
                     if (process.getWaitTime() > getStarvationTreshold()) {
                         starve();
                         process.setCompleted(false);
-                    } else {
+                    }
                         process.setCompleted(true);
                         addDoneProcess();
-                    }
                     process = null;
                 }
             }

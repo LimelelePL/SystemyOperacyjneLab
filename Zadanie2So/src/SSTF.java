@@ -36,9 +36,15 @@ public class SSTF extends Algoritm {
 
                 if(process!=null) {
                     if (completeProcesses(process)) {
-                        process.setCompleted(true);
                         int waitTime = getDisk().getTotalHeadMovements() - process.getArrivalTime();
                         process.setWaitTime(waitTime);
+                        if(getAverageWaitTime()>getStarvationTreshold()) {
+                            setStarvationTreshold((int) (getAverageWaitTime()*100));
+                        }
+                        if (process.getWaitTime()>getStarvationTreshold()){
+                            starve();
+                        }
+                        process.setCompleted(true);
                         addWaitTime(waitTime);
                         addDoneProcess();
                         process=null;

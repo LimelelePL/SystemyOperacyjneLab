@@ -56,6 +56,9 @@ public class SCAN extends Algoritm {
                     int waittime=getDisk().getTotalHeadMovements() - process.getArrivalTime();
                     process.setWaitTime(waittime);
                     addWaitTime(waittime);
+                    if(getAverageWaitTime()>getStarvationTreshold()) {
+                        setStarvationTreshold((int) (getAverageWaitTime()*10));
+                    }
                     if (process.getWaitTime() > getStarvationTreshold()) {
                             starve();
                             process.setCompleted(false);

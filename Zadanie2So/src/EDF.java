@@ -61,6 +61,11 @@ public class EDF extends Algoritm {
                         int waitTime = getDisk().getTotalHeadMovements() - currentProcess.getArrivalTime();
                         currentProcess.setWaitTime(waitTime);
 
+                        if(getAverageWaitTime()>getStarvationTreshold()) {
+                            setStarvationTreshold((int) (getAverageWaitTime()*100));
+                            starve();
+                        }
+
                         addWaitTime(waitTime);
                         addDoneProcess();
 
