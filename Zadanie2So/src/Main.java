@@ -6,9 +6,9 @@ public class Main {
         Generator generator = new Generator();
 
         // Standardowe generatory procesów
-        List<Process> randomList = generator.generateRandom(0.025, 500, 5000, 200000);
-        List<Process> oneSide   = generator.generateInOneSide(0.025, 500, 5000, 200000);
-        List<Process> bothSides = generator.generateInBothEdges(0.025, 500, 5000, 200000);
+        List<Process> randomList = generator.generateRandom(0.025, 500, 5000, 5000);
+        List<Process> oneSide   = generator.generateInOneSide(0.025, 500, 5000, 5000);
+        List<Process> bothSides = generator.generateInBothEdges(0.025, 500, 5000, 5000);
 
         // Listy procesów do standardowych testów
         ArrayList<List<Process>> standardGeneratedLists = new ArrayList<>();
@@ -41,7 +41,7 @@ public class Main {
 
         System.out.println("\n===================== SPECJALNE TESTY DLA ALGORYTMU SCAN (Procesy za głowicą) =====================");
 
-        List<Process> behindHead = generator.generateBehindHead(500, 5000, 200000, 53,  true);
+        List<Process> behindHead = generator.generateBehindHead(500, 5000, 20000, 53,  true);
 
         SCAN specialScan = new SCAN(new Disk(3, 500));
         specialScan.getDisk().reset();

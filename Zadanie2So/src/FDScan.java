@@ -10,22 +10,28 @@ public class FDScan extends Algoritm {
 
     @Override
     public void run(List<Process> processes) {
+        // Kolejka przybycia – sortowana wg arrivalTime
         Queue<Process> arrivalQueue = new PriorityQueue<>(Comparator.comparingInt(Process::getArrivalTime));
         arrivalQueue.addAll(processes);
 
-        ArrayList<Process> readyQueue = new ArrayList<>();
-        ArrayList<Process> deadlineQueue = new ArrayList<>();
-        Process process = null;
-        Process target = null;
+        // Kolejki gotowych żądań:
+        ArrayList<Process> readyQueue = new ArrayList<>();   // procesy normalne
+        ArrayList<Process> deadlineQueue = new ArrayList<>();  // procesy real-time (RT)
+
+        Process process = null;   // zwykły (normalny) proces wybrany do obsługi
+        Process target = null;    // proces priorytetowy (RT) wybrany do obsługi
 
         while (!readyQueue.isEmpty() || !arrivalQueue.isEmpty() || process != null || target != null) {
+            // 1. Przenosimy procesy, których arrivalTime już nadszedł, do readyQueue
             while (!arrivalQueue.isEmpty() &&
                     arrivalQueue.peek().getArrivalTime() <= getDisk().getTotalHeadMovements()) {
                 readyQueue.add(arrivalQueue.poll());
             }
 
+            // 2. Sortujemy readyQueue wg numeru cylindra
             readyQueue.sort(Comparator.comparingInt(Process::getCylinderNumber));
 
+            // 3. Przenosimy RT procesy z readyQueue do deadlineQueue
             for (int i = readyQueue.size() - 1; i >= 0; i--) {
                 Process p = readyQueue.get(i);
                 if (p.isRealTime()) {
@@ -33,17 +39,57 @@ public class FDScan extends Algoritm {
                     readyQueue.remove(i);
                 }
             }
-
+            // Sortujemy deadlineQueue wg deadline (rosnąco)
             deadlineQueue.sort(Comparator.comparingInt(Process::getDeadline));
 
-            //przesuwamy glowice zgodnie z kierunkiem ruchu
+            // 4. Przesuwamy głowicę w zależności od kierunku
             if (goingUp) {
                 getDisk().increaseCurrentPosition();
             } else {
                 getDisk().decreaseCurrentPosition();
             }
 
-            // Wybór procesu realtime w zależności od kierunku
+            // ******** DODATKOWY BLOK OBSŁUGI "NA BIEŻĄCYM CYLINDRZE" ********
+            // Sprawdzamy czy na bieżącym cylindrze znajdują się jakiekolwiek zadania z obu kolejek.
+            List<Process> currentCylinderTasks = new ArrayList<>();
+            // RT zadania:
+            for (Iterator<Process> it = deadlineQueue.iterator(); it.hasNext();) {
+                Process p = it.next();
+                if (p.getCylinderNumber() == getDisk().getCurrentPosition()) {
+                    currentCylinderTasks.add(p);
+                    it.remove();
+                }
+            }
+            // Normalne zadania:
+            for (Iterator<Process> it = readyQueue.iterator(); it.hasNext();) {
+                Process p = it.next();
+                if (p.getCylinderNumber() == getDisk().getCurrentPosition()) {
+                    currentCylinderTasks.add(p);
+                    it.remove();
+                }
+            }
+            // Obsłużmy wszystkie zadania, które znalazły się na bieżącym cylindrze
+            for (Process p : currentCylinderTasks) {
+                if (completeProcesses(p)) {
+                    int waitTime = getDisk().getTotalHeadMovements() - p.getArrivalTime();
+                    p.setWaitTime(waitTime);
+                    addWaitTime(waitTime);
+                    // Dynamiczne ustawienie progu zagłodzenia – jeśli średnia jest wyższa
+                    if(getAverageWaitTime() > getStarvationTreshold()) {
+                        setStarvationTreshold((int)(getAverageWaitTime() * 10));
+                    }
+                    if (p.getWaitTime() > getStarvationTreshold()) {
+                        starve();
+                        p.setCompleted(false);
+                    } else {
+                        p.setCompleted(true);
+                        addDoneProcess();
+                    }
+                }
+            }
+            // ******** KONIEC BLOKU ********
+
+            // 5. Wybór docelowego RT procesu (target) z deadlineQueue, jeśli taki jeszcze nie jest wybrany
             if (target == null && !deadlineQueue.isEmpty()) {
                 if (goingUp) {
                     for (int i = 0; i < deadlineQueue.size(); i++) {
@@ -54,6 +100,7 @@ public class FDScan extends Algoritm {
                                 break;
                             } else {
                                 deadlineQueue.remove(i);
+                                starve();
                                 i--;
                             }
                         }
@@ -67,6 +114,7 @@ public class FDScan extends Algoritm {
                                 break;
                             } else {
                                 deadlineQueue.remove(i);
+                                starve();
                                 i--;
                             }
                         }
@@ -74,7 +122,7 @@ public class FDScan extends Algoritm {
                 }
             }
 
-            // Jeśli nie ma docelowego procesu realtime bierzemy zwykly proces?
+            // 6. Jeśli nie ma RT procesu, wybieramy normalny proces ze readyQueue
             if (process == null && !readyQueue.isEmpty()) {
                 if (goingUp) {
                     for (int i = 0; i < readyQueue.size(); i++) {
@@ -95,45 +143,47 @@ public class FDScan extends Algoritm {
                 }
             }
 
-            // Obsługa targetu
+            // 7. Obsługa wybranego RT procesu (target)
             if (target != null) {
                 if (completeProcesses(target)) {
                     int waitTime = getDisk().getTotalHeadMovements() - target.getArrivalTime();
                     target.setWaitTime(waitTime);
                     addWaitTime(waitTime);
-                    if(getAverageWaitTime()>getStarvationTreshold()) {
-                        setStarvationTreshold((int) (getAverageWaitTime()*10));
+                    if(getAverageWaitTime() > getStarvationTreshold()) {
+                        setStarvationTreshold((int)(getAverageWaitTime() * 100));
                     }
                     if (target.getWaitTime() > getStarvationTreshold()) {
                         starve();
                         target.setCompleted(false);
-                    }
+                    } else {
                         target.setCompleted(true);
                         addDoneProcess();
+                    }
                     target = null;
                 }
             }
 
-            // Obsługa zwykłego procesu
+            // 8. Obsługa normalnego procesu
             if (process != null) {
                 if (completeProcesses(process)) {
                     int waitTime = getDisk().getTotalHeadMovements() - process.getArrivalTime();
                     process.setWaitTime(waitTime);
                     addWaitTime(waitTime);
-                    if(getAverageWaitTime()>getStarvationTreshold()) {
-                        setStarvationTreshold((int) (getAverageWaitTime()*10));
+                    if(getAverageWaitTime() > getStarvationTreshold()) {
+                        setStarvationTreshold((int)(getAverageWaitTime() * 100));
                     }
                     if (process.getWaitTime() > getStarvationTreshold()) {
                         starve();
                         process.setCompleted(false);
-                    }
+                    } else {
                         process.setCompleted(true);
                         addDoneProcess();
+                    }
                     process = null;
                 }
             }
 
-            // Sprawdzenie warunków zmiany kierunku
+            // 9. Sprawdzenie warunków zmiany kierunku głowicy
             if (goingUp && getDisk().getCurrentPosition() >= getDisk().getMaxPosition()) {
                 goingUp = false;
                 returns++;
@@ -152,7 +202,8 @@ public class FDScan extends Algoritm {
         return goingUp;
     }
 
-    // Sprawdza, czy zadanie jest wykonalne przed upływem deadline'u
+    // Sprawdza, czy dany proces jest wykonalny przed upływem deadline'u,
+    // czyli czy głowica zdąży do niego dotrzeć zanim deadline minie.
     private boolean isFeasible(Process req, int headPosition, int totalHeadMovements) {
         int timeToReach = Math.abs(req.getCylinderNumber() - headPosition);
         int finishTime = totalHeadMovements + timeToReach;

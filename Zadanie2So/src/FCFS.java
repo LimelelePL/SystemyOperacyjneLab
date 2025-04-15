@@ -41,7 +41,8 @@ public class FCFS extends Algoritm {
 
                 if(getAverageWaitTime()>getStarvationTreshold()) {
                     setStarvationTreshold((int) (getAverageWaitTime()*100));
-                }
+                    addWaitTime((int)getAverageWaitTime());
+                }else addWaitTime(waitTime);
 
                 if(process.getWaitTime() >getStarvationTreshold()){
                     starve();

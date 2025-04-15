@@ -26,8 +26,8 @@ public class EDF extends Algoritm {
                 int shift = queue.peek().getArrivalTime() - getDisk().getTotalHeadMovements();
                 getDisk().advanceTime(shift);
             }
-            //jak jakis proces sie nie wykona zagladzamy
-            starve(readyQueue);
+
+           // starve(readyQueue);
 
             readyQueue.sort((p1, p2) -> {
 
@@ -41,9 +41,11 @@ public class EDF extends Algoritm {
                 return Integer.compare(p1.getDistance(), p2.getDistance());
             });
 
+
             //bierzemy 1 proces z readyqueue
             if (!readyQueue.isEmpty()) {
                 Process first = readyQueue.get(0);
+
 
              //przesuwany glowice
                 if (first.getCylinderNumber() < getDisk().getCurrentPosition()) {
@@ -61,8 +63,15 @@ public class EDF extends Algoritm {
                         int waitTime = getDisk().getTotalHeadMovements() - currentProcess.getArrivalTime();
                         currentProcess.setWaitTime(waitTime);
 
+                        if(currentProcess.isRealTime()){
+                            if(waitTime>currentProcess.getDeadline()){
+                                starve();
+                            }
+                        }
                         if(getAverageWaitTime()>getStarvationTreshold()) {
                             setStarvationTreshold((int) (getAverageWaitTime()*100));
+                        }
+                        if(currentProcess.getWaitTime()>getStarvationTreshold()){
                             starve();
                         }
 

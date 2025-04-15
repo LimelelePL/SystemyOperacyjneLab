@@ -98,7 +98,7 @@ public class Generator {
             boolean isRealTime = random.nextBoolean();
 
             if (goingUp) {
-                cylinder = random.nextInt(2);
+                cylinder = random.nextInt(10);
                 arrivalTime=j+last;
                 processes.add(new Process(name, arrivalTime, cylinder, deadline, isRealTime));
                 }
@@ -112,7 +112,7 @@ public class Generator {
             String name = "P" + i+j+last;
             boolean isRealTime = random.nextBoolean();
 
-            cylinder = random.nextInt(maxCylinder - 2, maxCylinder);
+            cylinder = random.nextInt(maxCylinder - 10, maxCylinder);
             arrivalTime=j+last;
             processes.add(new Process(name, arrivalTime, cylinder, deadline, isRealTime));
         }
