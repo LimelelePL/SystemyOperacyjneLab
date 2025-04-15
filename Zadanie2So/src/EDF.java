@@ -1,7 +1,6 @@
 import java.util.*;
 
 public class EDF extends Algoritm {
-    private int starved=0;
 
     public EDF(Disk disk) {
         super(disk);
@@ -90,23 +89,5 @@ public class EDF extends Algoritm {
         process.setDistance(distance);
     }
 
-    private void starve(List<Process> processes) {
-        int currentTime = getDisk().getTotalHeadMovements();
 
-        Iterator<Process> it = processes.iterator();
-        while (it.hasNext()) {
-            Process p = it.next();
-            if (p.isRealTime() && !p.isCompleted()) {
-                if (currentTime > p.getDeadline()) {
-                    p.setStarved(true);
-                    it.remove();
-                    starve();
-                }
-            }
-        }
-    }
-
-    public int getStarved() {
-        return starved;
-    }
 }
