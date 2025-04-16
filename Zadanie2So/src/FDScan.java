@@ -28,10 +28,8 @@ public class FDScan extends Algoritm {
                 readyQueue.add(arrivalQueue.poll());
             }
 
-            // 2. Sortujemy readyQueue wg numeru cylindra
             readyQueue.sort(Comparator.comparingInt(Process::getCylinderNumber));
 
-            // 3. Przenosimy RT procesy z readyQueue do deadlineQueue
             for (int i = readyQueue.size() - 1; i >= 0; i--) {
                 Process p = readyQueue.get(i);
                 if (p.isRealTime()) {
@@ -42,7 +40,6 @@ public class FDScan extends Algoritm {
 
             deadlineQueue.sort(Comparator.comparingInt(Process::getDeadline));
 
-            // Przesuwamy głowicę w zależności od kierunku
             if (goingUp) {
                 getDisk().increaseCurrentPosition();
             } else {
@@ -139,7 +136,7 @@ public class FDScan extends Algoritm {
                 }
             }
 
-            // 7. Obsługa wybranego RT procesu (target)
+            //obsługa procesu realtime
             if (target != null) {
                 if (completeProcesses(target)) {
                     int waitTime = getDisk().getTotalHeadMovements() - target.getArrivalTime();
@@ -159,7 +156,6 @@ public class FDScan extends Algoritm {
                 }
             }
 
-            // 8. Obsługa normalnego procesu
             if (process != null) {
                 if (completeProcesses(process)) {
                     int waitTime = getDisk().getTotalHeadMovements() - process.getArrivalTime();
@@ -179,7 +175,6 @@ public class FDScan extends Algoritm {
                 }
             }
 
-            // 9. Sprawdzenie warunków zmiany kierunku głowicy
             if (goingUp && getDisk().getCurrentPosition() >= getDisk().getMaxPosition()) {
                 goingUp = false;
                 returns++;
@@ -198,8 +193,6 @@ public class FDScan extends Algoritm {
         return goingUp;
     }
 
-    // Sprawdza, czy dany proces jest wykonalny przed upływem deadline'u,
-    // czyli czy głowica zdąży do niego dotrzeć zanim deadline minie.
     private boolean isFeasible(Process req, int headPosition, int totalHeadMovements) {
         int timeToReach = Math.abs(req.getCylinderNumber() - headPosition);
         int finishTime = totalHeadMovements + timeToReach;

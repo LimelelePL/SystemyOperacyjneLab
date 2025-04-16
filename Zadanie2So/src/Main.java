@@ -5,24 +5,24 @@ public class Main {
     public static void main(String[] args) {
         Generator generator = new Generator();
 
-        // Standardowe generatory procesów
-        List<Process> randomList = generator.generateRandom(0.09, 500, 5000, 5000);
-        List<Process> oneSide   = generator.generateInOneSide(0.09, 500, 5000, 5000);
-        List<Process> bothSides = generator.generateInBothEdges(0.09, 500, 5000, 5000);
 
-        // Listy procesów do standardowych testów
+        List<Process> randomList = generator.generateRandom(0.05, 500, 5000, 5000);
+        List<Process> oneSide   = generator.generateInOneSide(0.05, 500, 5000, 5000);
+        List<Process> bothSides = generator.generateInBothEdges(0.05, 500, 5000, 5000);
+
+
         ArrayList<List<Process>> standardGeneratedLists = new ArrayList<>();
         standardGeneratedLists.add(randomList);
         standardGeneratedLists.add(oneSide);
         standardGeneratedLists.add(bothSides);
 
-        // Nazwy generatorów do wypisania wyników
+
         ArrayList<String> standardGeneratorNames = new ArrayList<>();
         standardGeneratorNames.add("Random");
         standardGeneratorNames.add("OneSide");
         standardGeneratorNames.add("Both Edges");
 
-        // Tworzenie instancji algorytmów z dyskiem o bieżącej głowicy w pozycji 53 i maksymalnej pozycji 200
+
         FCFS fcfs   = new FCFS(new Disk(53, 500));
         SSTF sstf   = new SSTF(new Disk(53, 500));
         EDF edf     = new EDF(new Disk(53, 500));
@@ -30,7 +30,7 @@ public class Main {
         SCAN scan   = new SCAN(new Disk(53, 500));
         FDScan fdscan = new FDScan(new Disk(53, 500));
 
-        // Część 1: Standardowe testy dla wszystkich algorytmów
+
         System.out.println("===================== STANDARDOWE TESTY DLA WSZYSTKICH ALGORYTMÓW =====================");
         runTests(fcfs, standardGeneratedLists, standardGeneratorNames, false);
         runTests(sstf, standardGeneratedLists, standardGeneratorNames, false);
