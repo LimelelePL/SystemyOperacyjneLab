@@ -6,9 +6,9 @@ public class Main {
         Generator generator = new Generator();
 
         // Standardowe generatory procesów
-        List<Process> randomList = generator.generateRandom(0.025, 500, 5000, 5000);
-        List<Process> oneSide   = generator.generateInOneSide(0.025, 500, 5000, 5000);
-        List<Process> bothSides = generator.generateInBothEdges(0.025, 500, 5000, 5000);
+        List<Process> randomList = generator.generateRandom(0.09, 500, 5000, 5000);
+        List<Process> oneSide   = generator.generateInOneSide(0.09, 500, 5000, 5000);
+        List<Process> bothSides = generator.generateInBothEdges(0.09, 500, 5000, 5000);
 
         // Listy procesów do standardowych testów
         ArrayList<List<Process>> standardGeneratedLists = new ArrayList<>();

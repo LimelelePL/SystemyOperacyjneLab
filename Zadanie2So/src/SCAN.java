@@ -79,6 +79,7 @@ public class SCAN extends Algoritm {
                 }
         }
     }
+
     public int getReturns() {
         return returns;
     }

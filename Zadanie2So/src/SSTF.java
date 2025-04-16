@@ -19,7 +19,7 @@ public class SSTF extends Algoritm {
                 readyQueue.add(queue.poll());
             }
 
-            if (readyQueue.isEmpty() && !queue.isEmpty()) { //niestety trzeba troche oszukac w pewnych przypadkach
+            if (readyQueue.isEmpty() && !queue.isEmpty()) {
                 getDisk().advanceTime(queue.peek().getArrivalTime() - getDisk().getTotalHeadMovements());
             }
 

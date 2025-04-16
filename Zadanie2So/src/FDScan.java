@@ -10,19 +10,19 @@ public class FDScan extends Algoritm {
 
     @Override
     public void run(List<Process> processes) {
-        // Kolejka przybycia – sortowana wg arrivalTime
+
         Queue<Process> arrivalQueue = new PriorityQueue<>(Comparator.comparingInt(Process::getArrivalTime));
         arrivalQueue.addAll(processes);
 
-        // Kolejki gotowych żądań:
-        ArrayList<Process> readyQueue = new ArrayList<>();   // procesy normalne
-        ArrayList<Process> deadlineQueue = new ArrayList<>();  // procesy real-time (RT)
 
-        Process process = null;   // zwykły (normalny) proces wybrany do obsługi
-        Process target = null;    // proces priorytetowy (RT) wybrany do obsługi
+        ArrayList<Process> readyQueue = new ArrayList<>();
+        ArrayList<Process> deadlineQueue = new ArrayList<>();
+
+        Process process = null;
+        Process target = null;
 
         while (!readyQueue.isEmpty() || !arrivalQueue.isEmpty() || process != null || target != null) {
-            // 1. Przenosimy procesy, których arrivalTime już nadszedł, do readyQueue
+
             while (!arrivalQueue.isEmpty() &&
                     arrivalQueue.peek().getArrivalTime() <= getDisk().getTotalHeadMovements()) {
                 readyQueue.add(arrivalQueue.poll());
@@ -39,20 +39,19 @@ public class FDScan extends Algoritm {
                     readyQueue.remove(i);
                 }
             }
-            // Sortujemy deadlineQueue wg deadline (rosnąco)
+
             deadlineQueue.sort(Comparator.comparingInt(Process::getDeadline));
 
-            // 4. Przesuwamy głowicę w zależności od kierunku
+            // Przesuwamy głowicę w zależności od kierunku
             if (goingUp) {
                 getDisk().increaseCurrentPosition();
             } else {
                 getDisk().decreaseCurrentPosition();
             }
 
-            // ******** DODATKOWY BLOK OBSŁUGI "NA BIEŻĄCYM CYLINDRZE" ********
+
             // Sprawdzamy czy na bieżącym cylindrze znajdują się jakiekolwiek zadania z obu kolejek.
             List<Process> currentCylinderTasks = new ArrayList<>();
-            // RT zadania:
             for (Iterator<Process> it = deadlineQueue.iterator(); it.hasNext();) {
                 Process p = it.next();
                 if (p.getCylinderNumber() == getDisk().getCurrentPosition()) {
@@ -74,7 +73,6 @@ public class FDScan extends Algoritm {
                     int waitTime = getDisk().getTotalHeadMovements() - p.getArrivalTime();
                     p.setWaitTime(waitTime);
                     addWaitTime(waitTime);
-                    // Dynamiczne ustawienie progu zagłodzenia – jeśli średnia jest wyższa
                     if(getAverageWaitTime() > getStarvationTreshold()) {
                         setStarvationTreshold((int)(getAverageWaitTime() * 10));
                     }
@@ -87,9 +85,7 @@ public class FDScan extends Algoritm {
                     }
                 }
             }
-            // ******** KONIEC BLOKU ********
 
-            // 5. Wybór docelowego RT procesu (target) z deadlineQueue, jeśli taki jeszcze nie jest wybrany
             if (target == null && !deadlineQueue.isEmpty()) {
                 if (goingUp) {
                     for (int i = 0; i < deadlineQueue.size(); i++) {
@@ -122,7 +118,7 @@ public class FDScan extends Algoritm {
                 }
             }
 
-            // 6. Jeśli nie ma RT procesu, wybieramy normalny proces ze readyQueue
+           // Jeśli nie ma RT procesu, wybieramy normalny proces ze readyQueue
             if (process == null && !readyQueue.isEmpty()) {
                 if (goingUp) {
                     for (int i = 0; i < readyQueue.size(); i++) {
