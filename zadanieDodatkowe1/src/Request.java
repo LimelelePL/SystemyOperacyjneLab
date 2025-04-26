@@ -1,5 +1,5 @@
 public class Request {
-    private String name;
+    private Integer ID;
     private String type;
     private int arrivalTime;
     private int sectorNumber;
@@ -11,9 +11,9 @@ public class Request {
 
     private double waitTime;
 
-    public Request(String name, String type, int arrivalTime,
+    public Request(Integer ID, String type, int arrivalTime,
                    int sectorNumber, int deadline, int predictedServiceTime, int gcPenalty) {
-        this.name = name;
+        this.ID = ID;
         this.type = type;
         this.arrivalTime = arrivalTime;
         this.sectorNumber = sectorNumber;
@@ -59,12 +59,12 @@ public class Request {
         this.gcPenalty = gcPenalty;
     }
 
-    public String getName() {
-        return name;
+    public Integer getID() {
+        return ID;
     }
 
-    public void setName(String name) {
-        this.name = name.toUpperCase();
+    public void setID(Integer ID) {
+        this.ID = ID;
     }
 
     public int getPredictedServiceTime() {
@@ -96,6 +96,6 @@ public class Request {
     }
 
     public void setType(String type) {
-        this.type = type;
+        this.type = type.toUpperCase();
     }
 }

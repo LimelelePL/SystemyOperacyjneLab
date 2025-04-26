@@ -5,23 +5,114 @@ import java.util.List;
 public abstract class Algoritm {
     private double avgWaitime;
     private double worstWaitime;
-    private double lostRequests;
+    private int lostRequests;
+    private int Gcs;
+    private int time;
+    private Disk disk;
+    private ArrayList<Integer> waitTimes;
 
-    public void calculateAvgWaitTime(ArrayList<Integer> waitTimes) {
+    public Disk getDisk() {
+        return disk;
+    }
+
+    public Algoritm() {
+        disk = new Disk(5000, 20, 20, 50);
+        this.avgWaitime = 0;
+        this.worstWaitime = 0;
+        this.lostRequests = 0;
+        this.Gcs = 0;
+        this.time = 0;
+        this.waitTimes = new ArrayList<>();
+        resetStats();
+    }
+
+    public void resetStats(){
+        this.avgWaitime = 0;
+        this.worstWaitime = 0;
+        this.lostRequests = 0;
+        this.Gcs = 0;
+        this.time = 0;
+    }
+
+    public void handleProcess(Request request) {
+        if (request.getType().equals("WRITE")) {
+            time += disk.getWriteLatency();
+            getDisk().incrementWritesSinceLastGC();
+
+            if (getDisk().getWritesSinceLastGC() == getDisk().getGcTreshold()) {
+                time += disk.getGcLatency();
+                getDisk().resetWritesSinceLastGC();
+            }
+        } else {
+            time += disk.getReadLatency();
+        }
+
+        waitTimes.add(time - request.getArrivalTime());
+    }
+
+    public void calculateAvgWaitTime() {
         double times=0;
         for (int i = 0; i < waitTimes.size(); i++) {
             times += waitTimes.get(i);
         }
-
         avgWaitime = times / waitTimes.size();
     }
 
-    public void calculateWorstWaitTime(ArrayList<Integer> waitTimes) {
+    public void incrementTime(){
+        time++;
+    }
+
+    public void calculateWorstWaitTime() {
         worstWaitime = Collections.max(waitTimes);
     }
 
-    public void incrementLostRequests() {
+    public void incrementLostRequests(Request request) {
         lostRequests++;
+        waitTimes.add(time- request.getArrivalTime());
+    }
+
+    public void incrementGcs() {
+        Gcs++;
+    }
+
+    public double getWorstWaitime() {
+        return worstWaitime;
+    }
+
+    public void setWorstWaitime(double worstWaitime) {
+        this.worstWaitime = worstWaitime;
+    }
+
+    public int getTime() {
+        return time;
+    }
+
+    public void setTime(int time) {
+        this.time = time;
+    }
+
+    public int getLostRequests() {
+        return lostRequests;
+    }
+
+    public void setLostRequests(int lostRequests) {
+        this.lostRequests = lostRequests;
+    }
+
+    public int getGcs() {
+        return Gcs;
+    }
+
+    public void setGcs(int gcs) {
+        Gcs = gcs;
+    }
+
+    public double getAvgWaitime() {
+        return avgWaitime;
+    }
+
+    public void setAvgWaitime(double avgWaitime) {
+        this.avgWaitime = avgWaitime;
     }
 
     public abstract void run(List<Request> requests);
