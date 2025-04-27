@@ -15,8 +15,8 @@ public abstract class Algoritm {
         return disk;
     }
 
-    public Algoritm() {
-        disk = new Disk(5000, 20, 20, 50);
+    public Algoritm(int gcLatency, int gcTreshold) {
+        disk = new Disk(gcLatency, gcTreshold, 20, 50);
         this.avgWaitime = 0;
         this.worstWaitime = 0;
         this.lostRequests = 0;
@@ -32,6 +32,7 @@ public abstract class Algoritm {
         this.lostRequests = 0;
         this.Gcs = 0;
         this.time = 0;
+        getDisk().resetWritesSinceLastGC();
     }
 
     public void handleProcess(Request request) {
@@ -41,8 +42,21 @@ public abstract class Algoritm {
 
             if (getDisk().getWritesSinceLastGC() == getDisk().getGcTreshold()) {
                 time += disk.getGcLatency();
+                incrementGcs();
                 getDisk().resetWritesSinceLastGC();
             }
+        } else {
+            time += disk.getReadLatency();
+        }
+
+        waitTimes.add(time - request.getArrivalTime());
+    }
+
+    public void handleProcessWithoutGc(Request request) {
+        if (request.getType().equals("WRITE")) {
+            time += disk.getWriteLatency();
+            getDisk().incrementWritesSinceLastGC();
+
         } else {
             time += disk.getReadLatency();
         }

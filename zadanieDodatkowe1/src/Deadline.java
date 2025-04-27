@@ -1,8 +1,8 @@
 import java.util.*;
 
 public class Deadline extends Algoritm{
-    public Deadline(){
-        super();
+    public Deadline(int gcLatency, int gcTreshold){
+        super(gcLatency, gcTreshold);
     }
 
     @Override

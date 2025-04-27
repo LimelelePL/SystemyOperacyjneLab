@@ -2,8 +2,8 @@ import java.util.*;
 
 public class CFQ extends Algoritm {
 
-    public CFQ() {
-        super();
+    public CFQ(int gcLatency, int gcTreshold) {
+        super(gcLatency, gcTreshold);
     }
 
     @Override

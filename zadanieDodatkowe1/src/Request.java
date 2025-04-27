@@ -8,19 +8,32 @@ public class Request {
     private int gcPenalty;
     private int startTime;
     private int endTime;
+    private boolean slacked=false;
 
     private double waitTime;
 
     public Request(Integer ID, String type, int arrivalTime,
-                   int sectorNumber, int deadline, int predictedServiceTime, int gcPenalty) {
+                   int sectorNumber, int deadline) {
         this.ID = ID;
         this.type = type;
         this.arrivalTime = arrivalTime;
         this.sectorNumber = sectorNumber;
         this.deadline = deadline;
-        this.predictedServiceTime = predictedServiceTime;
-        this.gcPenalty = gcPenalty;
+        this.predictedServiceTime = 0;
+        this.gcPenalty = 0;
         waitTime = 0.0;
+    }
+
+    public boolean isSlacked() {
+        return slacked;
+    }
+
+    public void setSlacked(boolean slacked) {
+        this.slacked = slacked;
+    }
+
+    public double getWaitTime() {
+        return waitTime;
     }
 
     public void setWaitTime(double waitTime) {

@@ -13,6 +13,7 @@ public class Disk {
         this.writesSinceLastGC = 0;
     }
 
+
     public void resetWritesSinceLastGC() {
        this.writesSinceLastGC= 0;
     }

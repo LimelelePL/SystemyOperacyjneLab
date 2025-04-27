@@ -4,8 +4,8 @@ import java.util.PriorityQueue;
 
 public class Noop extends Algoritm{
 
-    public Noop() {
-        super();
+    public Noop(int gcLatency, int gcTreshold) {
+        super(gcLatency, gcTreshold);
     }
     @Override
     public void run(List<Request> requests) {
@@ -21,15 +21,20 @@ public class Noop extends Algoritm{
             }
 
             if (request != null) {
-                if (getTime() > request.getArrivalTime() + request.getDeadline()) {
+                handleProcess(request);
+
+                int finishTime   = getTime();
+                int responseTime = finishTime - request.getArrivalTime();
+
+                if (responseTime > request.getDeadline()) {
                     incrementLostRequests(request);
                 }
-                handleProcess(request);
+
                 request = null;
             }
 
             incrementTime();
         }
+        }
     }
-}
 
