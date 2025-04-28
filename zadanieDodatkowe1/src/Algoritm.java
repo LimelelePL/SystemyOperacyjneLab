@@ -35,6 +35,10 @@ public abstract class Algoritm {
         getDisk().resetWritesSinceLastGC();
     }
 
+    public void waitTimesAdd(int waitTime){
+        this.waitTimes.add(waitTime);
+    }
+
     public void handleProcess(Request request) {
         if (request.getType().equals("WRITE")) {
             time += disk.getWriteLatency();

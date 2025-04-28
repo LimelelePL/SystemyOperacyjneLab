@@ -2,8 +2,11 @@ import java.util.*;
 
 public class CFQ extends Algoritm {
 
+    private final int timeSlice;
+
     public CFQ(int gcLatency, int gcTreshold) {
         super(gcLatency, gcTreshold);
+        this.timeSlice = 100;
     }
 
     @Override
@@ -16,10 +19,9 @@ public class CFQ extends Algoritm {
 
         while (!arrivalQueue.isEmpty() || !allQueuesEmpty(processQueues)) {
 
+            // Przenoszenie nowych requestów do odpowiednich kolejek
             while (!arrivalQueue.isEmpty() && arrivalQueue.peek().getArrivalTime() <= getTime()) {
                 Request req = arrivalQueue.poll();
-                // robimy mape ktora zawiera listy requestów o takim samym ID a nastepnie
-                // dodajemy tą kolejke do kolejki kolejek
                 processQueuesMap.putIfAbsent(req.getID(), new LinkedList<>());
                 processQueuesMap.get(req.getID()).add(req);
 
@@ -29,18 +31,24 @@ public class CFQ extends Algoritm {
             }
 
             for (Queue<Request> queue : processQueues) {
-                if (!queue.isEmpty()) {
+                int timeSpent = 0;
+                while (!queue.isEmpty() && timeSpent < timeSlice) {
                     Request request = queue.peek();
-                    if (getTime() >= request.getArrivalTime()) {
+                    if (request != null && getTime() >= request.getArrivalTime()) {
                         request = queue.poll();
 
                         if (getTime() > request.getArrivalTime() + request.getDeadline()) {
                             incrementLostRequests(request);
                         }
-                        handleProcess(request);
+                        int processTime = handleProcessWithReturn(request);
+
+                        timeSpent += processTime;
+                    } else {
+                        break; // Request jeszcze nie dotarł
                     }
                 }
             }
+
             incrementTime();
         }
     }
@@ -52,6 +60,27 @@ public class CFQ extends Algoritm {
             }
         }
         return true;
+    }
+
+    // Nowa metoda handleProcess z czasem obsługi
+    public int handleProcessWithReturn(Request request) {
+        int duration = 0;
+        if (request.getType().equals("WRITE")) {
+            duration = getDisk().getWriteLatency();
+            setTime(getTime() + duration);
+            getDisk().incrementWritesSinceLastGC();
+
+            if (getDisk().getWritesSinceLastGC() == getDisk().getGcTreshold()) {
+                setTime(getTime() + getDisk().getGcLatency());
+                getDisk().resetWritesSinceLastGC();
+                duration += getDisk().getGcLatency();
+            }
+        } else {
+            duration = getDisk().getReadLatency();
+            setTime(getTime() + duration);
+        }
+        waitTimesAdd(getTime() - request.getArrivalTime());
+        return duration;
     }
 }
 
