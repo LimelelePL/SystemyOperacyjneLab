@@ -10,11 +10,10 @@ public class Generator {
         }
         return pages;
     }
-    public ArrayList<Page> usingSubstrings(int size, int pageNumbers, double subsetChance) {
+    public ArrayList<Page> usingSubstrings(int size, int pageNumbers, double subsetChance, int sectionSize) {
         ArrayList<Page> pages = new ArrayList<>();
         Random rand = new Random();
 
-        int sectionSize = 100;
         int subrangeSize = Math.max(5, pageNumbers / 5);
 
         int currentSection = 0;
