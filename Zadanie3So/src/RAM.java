@@ -39,6 +39,15 @@ public class RAM {
         return -1;
     }
 
+    public int findIndex(Page page) {
+        for (int i = 0; i < size; i++) {
+            if (ram[i] != null && ram[i].getID().equals(page.getID())) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
     public void addToAnEmptyIndex(Page page){
         int emptyIndex=getEmptyIndex();
         if(emptyIndex!=-1){

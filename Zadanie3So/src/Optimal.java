@@ -47,7 +47,7 @@ public class Optimal extends Algoritm {
                     boolean found = false;
                     for (Page value : list) {
                         count++;
-                        if (value.getID().equals(page.getID())) {
+                        if (page!=null && value.getID().equals(page.getID())) {
                             found = true;
                             break;
                         }
