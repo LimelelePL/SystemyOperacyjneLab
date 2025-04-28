@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Queue;
 
 public abstract class Algoritm {
     private int pageFaultCount;
@@ -58,7 +59,7 @@ public abstract class Algoritm {
         return false;
     }
 
-    public abstract void handleRequest(Page request);
+    public abstract void handleRequest(Page request, Queue<Page> queue);
     public abstract void run(ArrayList<Page> pages);
 
     public int getPageFaultCount() {

@@ -1,4 +1,3 @@
-import com.sun.net.httpserver.Request;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -18,12 +17,12 @@ public class FIFO extends Algoritm{
         while(!queue.isEmpty()){
             Page page=queue.poll();
                 checkTrashing();
-                handleRequest(page);
+                handleRequest(page, queue);
         }
     }
 
     @Override
-    public void handleRequest(Page page) {
+    public void handleRequest(Page page, Queue<Page> queue) {
         if(pageFault(page)){
             getRam().insert(pointer,page);
             pointer = (pointer + 1) % getRam().getSize();

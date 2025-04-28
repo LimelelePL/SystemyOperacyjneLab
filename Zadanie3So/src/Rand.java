@@ -18,12 +18,12 @@ public class Rand extends Algoritm{
         while(!queue.isEmpty()){
             Page page=queue.poll();
             checkTrashing();
-            handleRequest(page);
+            handleRequest(page, queue);
         }
     }
 
     @Override
-    public void handleRequest(Page request) {
+    public void handleRequest(Page request, Queue<Page> queue) {
             if (pageFault(request)) {
                 int index = rand.nextInt(getRam().getSize());
                 getRam().insert(index, request);

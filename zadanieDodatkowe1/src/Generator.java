@@ -17,7 +17,7 @@ public class Generator {
                 type="WRITE";
                 count=0;
             }
-            int ID=i;
+            int ID=rand.nextInt(100);
 
             requests.add(new Request(ID,type,arrivalTime,sectorNumber,deadLine ));
             count++;

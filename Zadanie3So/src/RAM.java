@@ -22,6 +22,14 @@ public class RAM {
         return false;
     }
 
+    public Page get(int index){
+        return ram[index];
+    }
+
+    public boolean hasEmptyIndes(){
+        return getEmptyIndex()!=-1;
+    }
+
     public int getEmptyIndex(){
         for (int i=0;i<size;i++){
             if(ram[i]==null){
