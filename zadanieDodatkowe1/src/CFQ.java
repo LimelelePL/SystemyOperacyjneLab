@@ -16,9 +16,10 @@ public class CFQ extends Algoritm {
 
         while (!arrivalQueue.isEmpty() || !allQueuesEmpty(processQueues)) {
 
-            // Przenoszenie nowych requestów do odpowiednich kolejek
             while (!arrivalQueue.isEmpty() && arrivalQueue.peek().getArrivalTime() <= getTime()) {
                 Request req = arrivalQueue.poll();
+                // robimy mape ktora zawiera listy requestów o takim samym ID a nastepnie
+                // dodajemy tą kolejke do kolejki kolejek
                 processQueuesMap.putIfAbsent(req.getID(), new LinkedList<>());
                 processQueuesMap.get(req.getID()).add(req);
 
@@ -40,7 +41,6 @@ public class CFQ extends Algoritm {
                     }
                 }
             }
-
             incrementTime();
         }
     }
