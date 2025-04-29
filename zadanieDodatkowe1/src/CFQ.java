@@ -3,10 +3,11 @@ import java.util.*;
 public class CFQ extends Algoritm {
 
     private final int timeSlice;
+    private int changes = 0;
 
     public CFQ(int gcLatency, int gcTreshold) {
         super(gcLatency, gcTreshold);
-        this.timeSlice = 100;
+        this.timeSlice = 10;
     }
 
     @Override
@@ -19,7 +20,7 @@ public class CFQ extends Algoritm {
 
         while (!arrivalQueue.isEmpty() || !allQueuesEmpty(processQueues)) {
 
-            // Przenoszenie nowych requestów do odpowiednich kolejek
+            // tworzymy z requestów procesy, które zawieraja ileś requestów o tym samym ID
             while (!arrivalQueue.isEmpty() && arrivalQueue.peek().getArrivalTime() <= getTime()) {
                 Request req = arrivalQueue.poll();
                 processQueuesMap.putIfAbsent(req.getID(), new LinkedList<>());
@@ -30,8 +31,10 @@ public class CFQ extends Algoritm {
                 }
             }
 
+            //wykonujemy dany proces przed kwant czasu
             for (Queue<Request> queue : processQueues) {
                 int timeSpent = 0;
+
                 while (!queue.isEmpty() && timeSpent < timeSlice) {
                     Request request = queue.peek();
                     if (request != null && getTime() >= request.getArrivalTime()) {
@@ -41,14 +44,13 @@ public class CFQ extends Algoritm {
                             incrementLostRequests(request);
                         }
                         int processTime = handleProcessWithReturn(request);
-
                         timeSpent += processTime;
+
                     } else {
-                        break; // Request jeszcze nie dotarł
+                        break;
                     }
                 }
             }
-
             incrementTime();
         }
     }
@@ -62,7 +64,6 @@ public class CFQ extends Algoritm {
         return true;
     }
 
-    // Nowa metoda handleProcess z czasem obsługi
     public int handleProcessWithReturn(Request request) {
         int duration = 0;
         if (request.getType().equals("WRITE")) {
@@ -82,5 +83,12 @@ public class CFQ extends Algoritm {
         waitTimesAdd(getTime() - request.getArrivalTime());
         return duration;
     }
-}
 
+    public int getChanges () {
+        return changes;
+    }
+
+    public void resetSlice() {
+        this.changes = 0;
+    }
+}

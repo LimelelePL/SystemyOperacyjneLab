@@ -1,9 +1,9 @@
 import java.util.*;
 
-public class HIOS extends Algoritm{
-    public HIOS(int gcLatency, int gcTreshold){
-       super(gcLatency,gcTreshold);
-   }
+public class HIOS extends Algoritm {
+    public HIOS(int gcLatency, int gcTreshold) {
+        super(gcLatency, gcTreshold);
+    }
 
     @Override
     public void run(List<Request> requests) {
@@ -23,11 +23,13 @@ public class HIOS extends Algoritm{
                 continue;
             }
 
+            // sortujemy kolejke po slacku i bierzemy z niej pierwszy proces, tzn najpilniejszy
             if (currentRequest == null && !pendingQueue.isEmpty()) {
-                pendingQueue.sort(Comparator.comparing(Request::getArrivalTime));
+                pendingQueue.sort(Comparator.comparing(this::calculateSlack));
                 currentRequest = pendingQueue.pollFirst();
             }
 
+            //jezeli slack procesu jest ujemny to rozbijamy GC latency na reszte procesów
             if (currentRequest != null) {
                 if (isNegative(currentRequest)) {
                     if (!tryRedistributeGC(currentRequest, pendingQueue)) {
@@ -36,7 +38,7 @@ public class HIOS extends Algoritm{
                         continue;
                     }
                 }
-
+//jezeli proces jest sie w stanie wykonac bez reinstrybucji lub proces jest read
                 handleProcessWithoutGc(currentRequest);
                 checkDeadline(currentRequest);
                 currentRequest = null;
@@ -46,6 +48,7 @@ public class HIOS extends Algoritm{
         }
     }
 
+    //metoda ktora sprawdza ktore procesy w ogole sie oplaca wykonywac procedure podzialu gc dla danego proces
     private boolean isNegative(Request request) {
         int predictedService = request.getType().equals("WRITE") ? getDisk().getWriteLatency() : getDisk().getReadLatency();
 
@@ -55,19 +58,24 @@ public class HIOS extends Algoritm{
 
         int predictedFinish = getTime() + predictedService;
         int absoluteDeadline = request.getArrivalTime() + request.getDeadline();
-
+        // slack bedzie ujemny czyli zwracamy true
         return predictedFinish > absoluteDeadline;
     }
 
+
     private boolean tryRedistributeGC(Request criticalRequest, LinkedList<Request> pendingQueue) {
+        //gc dziala tylko dla writeow
         if (!(criticalRequest.getType().equals("WRITE"))) {
             return false;
         }
 
+        //sprawdamy czy gc jest blisko jak nie to mozna sobie wykonywac bez reinstrybucji critical request
         if (getDisk().getWritesSinceLastGC() + 1 < getDisk().getGcTreshold()) {
             return true;
         }
 
+//zbieramy procesy ktore po przesunieciu nie zlamia deadlinów i sumujemy ich slacki az przekorcza gc latency
+        //w przeciwnym przypadku nie da sie miedzy nimi reinstrybuowac tego gc latency
         int gcLatency = getDisk().getGcLatency();
         List<Request> candidates = new ArrayList<>();
         int accumulatedSlack = 0;
@@ -88,11 +96,9 @@ public class HIOS extends Algoritm{
         int gcPerRequest = gcLatency / candidates.size();
 
         for (Request r : candidates) {
-            setTime(getTime()+gcPerRequest);
-
+            setTime(getTime() + gcPerRequest);
             handleProcessWithoutGc(r);
             checkDeadline(r);
-
             pendingQueue.remove(r);
         }
 
