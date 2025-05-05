@@ -25,7 +25,6 @@ public class Noop extends Algoritm{
 
                 int finishTime   = getTime();
                 int responseTime = finishTime - request.getArrivalTime();
-
                 if (responseTime > request.getDeadline()) {
                     incrementLostRequests(request);
                 }

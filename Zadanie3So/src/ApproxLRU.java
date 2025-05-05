@@ -15,7 +15,7 @@ public class ApproxLRU extends Algoritm {
         Queue<Page> queue = new LinkedList<>(pages);
         while (!queue.isEmpty()) {
             Page page = queue.poll();
-            checkTrashing();
+            //checkTrashing();
             handleRequest(page, queue);
         }
     }

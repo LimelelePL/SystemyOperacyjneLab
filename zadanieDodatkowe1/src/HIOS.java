@@ -58,6 +58,7 @@ public class HIOS extends Algoritm {
 
         int predictedFinish = getTime() + predictedService;
         int absoluteDeadline = request.getArrivalTime() + request.getDeadline();
+
         // slack bedzie ujemny czyli zwracamy true
         return predictedFinish > absoluteDeadline;
     }

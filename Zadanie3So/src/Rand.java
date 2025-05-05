@@ -17,7 +17,7 @@ public class Rand extends Algoritm{
 
         while(!queue.isEmpty()){
             Page page=queue.poll();
-            checkTrashing();
+            //checkTrashing();
             handleRequest(page, queue);
         }
     }

@@ -16,7 +16,7 @@ public class FIFO extends Algoritm{
 
         while(!queue.isEmpty()){
             Page page=queue.poll();
-                checkTrashing();
+              //  checkTrashing();
                 handleRequest(page, queue);
         }
     }

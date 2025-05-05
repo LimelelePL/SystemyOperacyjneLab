@@ -20,11 +20,11 @@ public class Deadline extends Algoritm{
                 sectorQueue.add(req);
                 deadlineQueue.add(req);
             }
-
+//sortujemy  kolejki wzgledem sektorów a nastepnie wzgledem deadlinów
             sectorQueue.sort(Comparator.comparing(Request::getSectorNumber));
             deadlineQueue.sort(Comparator.comparing(req -> req.getArrivalTime() + req.getDeadline()));
-
-            if (!deadlineQueue.isEmpty()) {
+//zagłodzenie procesu na który po ktory nie zdarzymy
+            if(!deadlineQueue.isEmpty()) {
                 Request nextDeadlineRequest = deadlineQueue.getFirst();
                 if (getTime() > nextDeadlineRequest.getArrivalTime() + nextDeadlineRequest.getDeadline()) {
                     incrementLostRequests(nextDeadlineRequest);
@@ -34,6 +34,7 @@ public class Deadline extends Algoritm{
                 }
             }
 
+// jezeli konczy sie deadline danego procesu to go obslugujemy
             if (shouldRunForDeadline(deadlineQueue)) {
                 Request request = deadlineQueue.removeFirst();
                 sectorQueue.remove(request);
@@ -41,6 +42,7 @@ public class Deadline extends Algoritm{
                 continue;
             }
 
+//normalna obsluga
             if (!sectorQueue.isEmpty() && getTime() >= sectorQueue.getFirst().getArrivalTime()) {
                 Request request = sectorQueue.removeFirst();
                 deadlineQueue.remove(request);
@@ -51,6 +53,7 @@ public class Deadline extends Algoritm{
             incrementTime();
         }
     }
+
 
     public boolean shouldRunForDeadline(List<Request> requests) {
         if (requests.isEmpty()) {
