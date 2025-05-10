@@ -60,7 +60,10 @@ public abstract class Algoritm {
         if (request.getType().equals("WRITE")) {
             time += disk.getWriteLatency();
             getDisk().incrementWritesSinceLastGC();
-
+            if (getDisk().getWritesSinceLastGC() == getDisk().getGcTreshold()) {
+                incrementGcs();
+                getDisk().resetWritesSinceLastGC();
+            }
         } else {
             time += disk.getReadLatency();
         }

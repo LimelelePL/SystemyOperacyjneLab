@@ -73,6 +73,7 @@ public class CFQ extends Algoritm {
 
             if (getDisk().getWritesSinceLastGC() == getDisk().getGcTreshold()) {
                 setTime(getTime() + getDisk().getGcLatency());
+                incrementGcs();
                 getDisk().resetWritesSinceLastGC();
                 duration += getDisk().getGcLatency();
             }

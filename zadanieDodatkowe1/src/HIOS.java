@@ -33,7 +33,7 @@ public class HIOS extends Algoritm {
             if (currentRequest != null) {
                 if (isNegative(currentRequest)) {
                     if (!tryRedistributeGC(currentRequest, pendingQueue)) {
-                        incrementLostRequests(currentRequest);
+                      incrementLostRequests(currentRequest);
                         currentRequest = null;
                         continue;
                     }
@@ -90,17 +90,19 @@ public class HIOS extends Algoritm {
                 }
             }
         }
-        if (accumulatedSlack < gcLatency) {
+        if (accumulatedSlack>0 && accumulatedSlack < gcLatency) {
             return false;
         }
 
-        int gcPerRequest = gcLatency / candidates.size();
+        if(!candidates.isEmpty()) {
+            int gcPerRequest = gcLatency / candidates.size();
 
-        for (Request r : candidates) {
-            setTime(getTime() + gcPerRequest);
-            handleProcessWithoutGc(r);
-            checkDeadline(r);
-            pendingQueue.remove(r);
+            for (Request r : candidates) {
+                setTime(getTime() + gcPerRequest);
+                handleProcessWithoutGc(r);
+                checkDeadline(r);
+                pendingQueue.remove(r);
+            }
         }
 
         getDisk().resetWritesSinceLastGC();
