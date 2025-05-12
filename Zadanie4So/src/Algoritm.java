@@ -4,7 +4,6 @@ import java.util.Queue;
 public abstract class Algoritm {
     private int pageFaultCount;
     private int trashingCount;
-    private int faultRate;
     private int requestCount;
     private RAM ram;
     private int size;
@@ -21,7 +20,6 @@ public abstract class Algoritm {
         ram=new RAM(size);
         this.pageFaultCount = 0;
         this.trashingCount = 0;
-        this.faultRate = 7;
         this.requestCount = 0;
         resetStats();
     }
@@ -30,7 +28,6 @@ public abstract class Algoritm {
         ram.reset();
         this.pageFaultCount = 0;
         this.trashingCount = 0;
-        this.faultRate = 7;
         this.requestCount = 0;
         this. recentRequests = 0;
         this. recentFaults = 0;
@@ -59,6 +56,25 @@ public abstract class Algoritm {
         return false;
     }
 
+    public void setRamSize(int newSize) {
+        this.ram = new RAM(newSize);
+        this.resetStats(); // lub tylko RAM.reset()
+    }
+    public int getRamSize() {
+        return ram.getSize();
+    }
+    public int getRecentFaults() {
+        return recentFaults;
+    }
+
+    public int getRecentRequests() {
+        return recentRequests;
+    }
+
+    public void resetWindowStats() {
+        recentFaults = 0;
+        recentRequests = 0;
+    }
 
 
     public abstract void handleRequest(Page request, Queue<Page> queue);

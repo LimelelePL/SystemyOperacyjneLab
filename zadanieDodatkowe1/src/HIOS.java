@@ -104,7 +104,7 @@ public class HIOS extends Algoritm {
                 pendingQueue.remove(r);
             }
         }
-
+        //incrementGcs();
         getDisk().resetWritesSinceLastGC();
 
         return true;
