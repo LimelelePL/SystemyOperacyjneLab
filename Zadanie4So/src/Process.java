@@ -5,23 +5,29 @@ public class Process {
     private List<Page> referenceString;
     private Algoritm algorithm;
     private boolean suspended = false;
+    private int suspendCount = 0;
 
-    public Process(int processID, List<Page> referenceString, Algoritm algorithm) {
-        this.processID = processID;
-        this.referenceString = referenceString;
-        this.algorithm = algorithm;
+    public Process(int id, List<Page> ref, Algoritm alg) {
+        this.processID = id;
+        this.referenceString = ref;
+        this.algorithm = alg;
+    }
+
+    public void suspend() {
+        suspended = true;
+        suspendCount++;
+    }
+
+    public void resume() {
+        suspended = false;
     }
 
     public boolean isSuspended() {
         return suspended;
     }
 
-    public void suspend() {
-        suspended = true;
-    }
-
-    public void resume() {
-        suspended = false;
+    public int getSuspendCount() {
+        return suspendCount;
     }
 
     public int getProcessID() {
@@ -36,13 +42,7 @@ public class Process {
         return algorithm;
     }
 
-    public void reset() {
-        algorithm.resetStats();
-    }
-
     public void setAlgorithm(Algoritm algorithm) {
         this.algorithm = algorithm;
-        algorithm.resetStats();
     }
-
 }

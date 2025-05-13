@@ -92,22 +92,5 @@ public class Generator {
         return pages;
     }
 
-    public ArrayList<Page> generateHighTrashing(int size, int pageNumbers) {
-        ArrayList<Page> pages = new ArrayList<>();
-        Random rand = new Random();
 
-        for (int i = 0; i < size; i++) {
-            int page;
-
-            if (i % 2 == 0) {
-                page = rand.nextInt(pageNumbers);
-            } else {
-                page = (rand.nextInt(pageNumbers / 2) + pageNumbers / 2) % pageNumbers;
-            }
-
-            pages.add(new Page(page));
-        }
-
-        return pages;
-    }
 }

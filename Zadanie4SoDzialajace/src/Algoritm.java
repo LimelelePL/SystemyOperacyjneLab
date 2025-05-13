@@ -4,12 +4,14 @@ import java.util.Queue;
 public abstract class Algoritm {
     private int pageFaultCount;
     private int trashingCount;
+
     private int requestCount;
     private RAM ram;
     private int size;
 
-    private int windowSize = 10;
-    private int faultThreshold = 7;
+    private int windowSize; // co ile sprawdzamy czy wystapilo szamotanie
+    private int faultRate;// prog szamotania
+
 
     private int recentRequests = 0;
     private int recentFaults = 0;
@@ -20,25 +22,29 @@ public abstract class Algoritm {
         ram=new RAM(size);
         this.pageFaultCount = 0;
         this.trashingCount = 0;
+
+        this.faultRate = 7;
+        this. windowSize = 10;
+
         this.requestCount = 0;
-        resetStats();
     }
 
     public void resetStats(){
         ram.reset();
         this.pageFaultCount = 0;
         this.trashingCount = 0;
+        this.faultRate = 7;
         this.requestCount = 0;
         this. recentRequests = 0;
         this. recentFaults = 0;
     }
 
     public void incrementRequestCount() {
-        requestCount++;
-        recentRequests++;
+        this.requestCount++;
+        this.recentRequests++;
 
         if (recentRequests >= windowSize) {
-            if (recentFaults >= faultThreshold) {
+            if (recentFaults >= faultRate) {
                 trashingCount++;
             }
             recentRequests = 0;
@@ -56,27 +62,9 @@ public abstract class Algoritm {
         return false;
     }
 
-    public void setRamSize(int newSize) {
-        this.ram.resize(newSize); // zmieniamy rozmiar istniejącej pamięci
-    }
-    public int getRamSize() {
-        return ram.getSize();
-    }
-    public int getRecentFaults() {
-        return recentFaults;
-    }
-
-    public int getRecentRequests() {
-        return recentRequests;
-    }
-
-    public void resetWindowStats() {
-        recentFaults = 0;
-        recentRequests = 0;
-    }
 
 
-    public abstract void handleRequest(Page request, Queue<Page> queue);
+    public abstract void handleRequest(Page request);
     public abstract void run(ArrayList<Page> pages);
 
     public int getPageFaultCount() {
@@ -89,9 +77,5 @@ public abstract class Algoritm {
 
     public RAM getRam() {
         return ram;
-    }
-
-    public int getRequestCount() {
-        return requestCount;
     }
 }

@@ -2,9 +2,10 @@ import java.util.*;
 
 public class WorkingSetAllocator implements FrameAllocator {
 
-    private int deltaT = 10;
+    private int deltaT = 20;
     private int minFrames = 1;
     private int freeFrames = 0;
+    private int monitorTick = 0;
 
     private Map<Integer, Deque<Integer>> recentRefs = new HashMap<>();
 
@@ -32,12 +33,16 @@ public class WorkingSetAllocator implements FrameAllocator {
     }
 
     public boolean shouldMonitor(Process p) {
-        return recentRefs.get(p.getProcessID()).size() == deltaT;
+        monitorTick++;
+        return monitorTick % deltaT == 0;
     }
 
     public void monitor(List<Process> processes) {
         for (Process p : processes) {
-            if (p.isSuspended()) continue;
+            if (p.isSuspended()){
+                p.resume();
+                continue;
+            }
 
             int id = p.getProcessID();
             Set<Integer> workingSet = new HashSet<>(recentRefs.get(id));
@@ -48,11 +53,12 @@ public class WorkingSetAllocator implements FrameAllocator {
             if (desired > current && freeFrames >= (desired - current)) {
                 p.getAlgorithm().setRamSize(desired);
                 freeFrames -= (desired - current);
-            } else if (desired < current) {
+            }
+            else if (desired < current) {
                 int toFree = current - desired;
                 p.getAlgorithm().setRamSize(desired);
                 freeFrames += toFree;
-            }
+            } else p.suspend();
         }
     }
 }

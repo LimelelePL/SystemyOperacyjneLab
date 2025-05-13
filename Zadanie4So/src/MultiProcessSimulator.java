@@ -12,33 +12,28 @@ public class MultiProcessSimulator {
         this.globalReferenceString = globalReferenceString;
     }
 
+
     public void run() {
         for (Reference ref : globalReferenceString) {
             Process p = processes.get(ref.processId);
-            if (p.isSuspended()) continue;
-
+            if (p.isSuspended()){
+                p.resume();
+                continue;
+            }
             p.getAlgorithm().handleRequest(ref.page, new LinkedList<>());
 
-            // Obsługa PPF
-            if (ppfAllocator != null && ppfAllocator.shouldMonitor(p)) {
-                ppfAllocator.monitor(processes);
+            if (ppfAllocator != null) {
+                if (ppfAllocator.shouldMonitor(p)) {
+                    ppfAllocator.monitor(processes);
+                }
             }
 
-            // Obsługa WSS
             if (wssAllocator != null) {
                 wssAllocator.recordReference(p, ref.page);
                 if (wssAllocator.shouldMonitor(p)) {
                     wssAllocator.monitor(processes);
                 }
             }
-        }
-    }
-
-    public void printStats() {
-        for (Process p : processes) {
-            System.out.println("Process " + p.getProcessID() + ":");
-            System.out.println("Page Faults: " + p.getAlgorithm().getPageFaultCount());
-            System.out.println("Trashing: " + p.getAlgorithm().getTrashingCount());
         }
     }
 

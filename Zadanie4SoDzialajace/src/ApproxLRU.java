@@ -12,19 +12,18 @@ public class ApproxLRU extends Algoritm {
         pointer = 0;
     }
 
+    //useless teraz jest
     @Override
     public void run(ArrayList<Page> pages) {
-        Queue<Page> queue = new LinkedList<>(pages);
-        while (!queue.isEmpty()) {
-            Page page = queue.poll();
-            handleRequest(page, queue);
-        }
+//        Queue<Page> queue = new LinkedList<>(pages);
+//        while (!queue.isEmpty()) {
+//            Page page = queue.poll();
+//            handleRequest(page);
+//        }
     }
 
-
-
     @Override
-    public void handleRequest(Page request, Queue<Page> queue) {
+    public void handleRequest(Page request) {
         if (pageFault(request)) {
             if (getRam().hasEmptyIndes()) {
                 getRam().addToAnEmptyIndex(request);
@@ -49,7 +48,6 @@ public class ApproxLRU extends Algoritm {
                 bits[index] = true;
             }
         }
-
         incrementRequestCount();
     }
     private void movePointer(){

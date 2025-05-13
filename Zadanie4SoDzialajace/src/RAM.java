@@ -13,7 +13,7 @@ public class RAM {
 
     public boolean contains(Page page) {
         for (int i=0;i<size;i++){
-            if(ram[i] != null && (ram[i].getNumber().equals(page.getNumber()))){
+            if(ram[i] != null && (ram[i].getID().equals(page.getID()))){
                 return true;
             }
         }
@@ -36,18 +36,10 @@ public class RAM {
         }
         return -1;
     }
-    public void resize(int newSize) {
-        Page[] newRam = new Page[newSize];
-        for (int i = 0; i < Math.min(size, newSize); i++) {
-            newRam[i] = ram[i];  // kopiujemy istniejące strony
-        }
-        ram = newRam;
-        size = newSize;
-    }
 
     public int findIndex(Page page) {
         for (int i = 0; i < size; i++) {
-            if (ram[i] != null && ram[i].getNumber().equals(page.getNumber())) {
+            if (ram[i] != null && ram[i].getID().equals(page.getID())) {
                 return i;
             }
         }
