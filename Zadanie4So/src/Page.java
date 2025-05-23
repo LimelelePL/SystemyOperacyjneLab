@@ -1,15 +1,17 @@
+// Page.java
 public class Page {
-    private Integer number;
+    public final int id;
+    public final int processID;
+    public int lastUsed;
 
-    public Page(Integer number) {
-        this.number = number;
+    public Page(int id, int lastUsed, int processID) {
+        this.id = id;
+        this.lastUsed = lastUsed;
+        this.processID = processID;
     }
 
-    public Integer getNumber() {
-        return number;
-    }
-
-    public void setNumber(Integer number) {
-        this.number = number;
+    @Override
+    public String toString() {
+        return "[Nr:" + id + " | proc:" + processID + " | ref:" + lastUsed + "]";
     }
 }
