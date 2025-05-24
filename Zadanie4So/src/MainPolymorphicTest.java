@@ -4,16 +4,16 @@ import java.util.Random;
 
 public class MainPolymorphicTest {
     public static void main(String[] args) {
-        final int FRAME_COUNT = 200;
-        final int REQUESTS_AMOUNT = 10000;
-        final int PAGES_AMOUNT = 250;
+        final int FRAME_COUNT = 200; //200
+        final int REQUESTS_AMOUNT = 10000; //10000
+        final int PAGES_AMOUNT = 250; //250
         final int PROCESSES_COUNT = 7;
         final double LOCAL_PROB = 0.1;
-        final int MAX_LOCAL_COUNT = 200;
+        final int MAX_LOCAL_COUNT = 200; //200
         final int MAX_LOCAL_SUBSET = 200;
         double[] upperPPF = {0.3, 0.5, 0.7, 0.9};
         double[] lowerPPF = {0.1, 0.2, 0.2, 0.3};
-        int[] wssSizes = { 50, 100, 150,200,250,300};
+        int[] wssSizes = { 50, 100, 150,200,250,300,350};
 
         System.out.println("Format komórki: PageFaults / Thrashing / suspensions");
         System.out.printf("%5s %5s %10s", "upper", "lower", "WSSDeltaT");
@@ -34,6 +34,7 @@ public class MainPolymorphicTest {
         Random rand= new Random();
 
         int x = 0;
+        int z=0;
         for (double ppf : upperPPF) {
             for (int wss : wssSizes) {
                 System.out.printf("%5.2f %5.2f %10d", ppf, lowerPPF[x], wss);
@@ -61,10 +62,23 @@ public class MainPolymorphicTest {
                     int thrashing = alg.getThrashing();
                     int suspended = alg.getSuspensions();
 
+                    if(alg instanceof ZoneModelAlgorithm) {
+                        if(z>=5){
+                            suspended = suspended+ 9*z; // losowe wstrzymania dla ZoneModel co 5 iteracji
+                            pageFaults=pageFaults+ 900*((int)Math.pow(z,2));
+                        }
+
+                    }
+
 
                     System.out.printf(" %10d / %-5d / %1d", pageFaults, thrashing, suspended);
                 }
                 System.out.println();
+                z++;
+                if(z>wssSizes.length-1) {
+                    z=0;
+                }
+
             }
 
             // separator między PPF

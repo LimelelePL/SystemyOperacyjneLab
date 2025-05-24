@@ -1,15 +1,6 @@
 import java.util.*;
 
 public class ZoneModelAlgorithm extends BaseAlgorithm {
-    
-    // Brakujący konstruktor bez preGeneratedProcesses
-    public ZoneModelAlgorithm(int framesCount, int requestCount, int maxID, int processesCount,
-                              double ppfPercentage, double lower, int zoneCoef,
-                              double localProbability, int localCount, int localSubset) {
-        super(framesCount, requestCount, maxID, processesCount,
-                ppfPercentage, lower, zoneCoef,
-                localProbability, localCount, localSubset);
-    }
 
     // Istniejący konstruktor z preGeneratedProcesses
     public ZoneModelAlgorithm(int framesCount, int requestCount, int maxID, int processesCount,
@@ -27,7 +18,8 @@ public class ZoneModelAlgorithm extends BaseAlgorithm {
 
         // Parametry algorytmu
         final int deltaT = zoneCoef;        // Rozmiar okna dla WSS (delta t)
-        final int c = Math.max(1, deltaT/2); // Częstość przeliczania WSS (c < delta_t)
+        final int c = Math.max(1, deltaT/2);
+        // Częstość przeliczania WSS (c < delta_t)
 
         List<Proces> processes = deepCopyProcesses();
 
@@ -66,8 +58,8 @@ public class ZoneModelAlgorithm extends BaseAlgorithm {
         // Główna pętla symulacji
 
         boolean allProcessesDone = false;
-        while (!allProcessesDone) {
 
+        while (!allProcessesDone) {
 
             // Sprawdź, czy możemy wznowić wstrzymane procesy
             int availableFrames = calculateAvailableFrames(allocatedFrames);
@@ -102,6 +94,8 @@ public class ZoneModelAlgorithm extends BaseAlgorithm {
                 // Wykonaj c żądań lub dopóki proces ma żądania
                 int requestsProcessed = 0;
                 while (requestsProcessed < c && currentIndex[pid] < process.requests.size()) {
+
+
 
                     Page request = process.requests.get(currentIndex[pid]);
 
@@ -152,11 +146,11 @@ public class ZoneModelAlgorithm extends BaseAlgorithm {
                             frames.add(new Page(request.id, 0, pid));
                         }
                     }
-
                     currentIndex[pid]++;
                     requestsProcessed++;
 
                 }
+
 
                 // Sprawdź, czy proces zakończył wszystkie żądania
                 if (currentIndex[pid] >= process.requests.size()) {
