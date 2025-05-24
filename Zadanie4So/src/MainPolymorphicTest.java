@@ -1,20 +1,21 @@
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 public class MainPolymorphicTest {
     public static void main(String[] args) {
-        final int FRAME_COUNT = 150;
+        final int FRAME_COUNT = 200;
         final int REQUESTS_AMOUNT = 10000;
         final int PAGES_AMOUNT = 250;
-        final int PROCESSES_COUNT = 8;
+        final int PROCESSES_COUNT = 7;
         final double LOCAL_PROB = 0.1;
-        final int MAX_LOCAL_COUNT = 100;
+        final int MAX_LOCAL_COUNT = 200;
         final int MAX_LOCAL_SUBSET = 200;
         double[] upperPPF = {0.3, 0.5, 0.7, 0.9};
         double[] lowerPPF = {0.1, 0.2, 0.2, 0.3};
-        int[] wssSizes = {10, 20, 30, 40, 50};
+        int[] wssSizes = { 50, 100, 150,200,250,300};
 
-        System.out.println("Format komórki: PageFaults / Thrashing / ");
+        System.out.println("Format komórki: PageFaults / Thrashing / suspensions");
         System.out.printf("%5s %5s %10s", "upper", "lower", "WSSDeltaT");
         List<String> names = List.of("Equal", "Proportional", "SteeringPFF", "ZoneModel");
         for (String n : names) System.out.printf(" %20s", n);
@@ -30,6 +31,7 @@ public class MainPolymorphicTest {
         BaseAlgorithm generator = new EqualAlgorithm(FRAME_COUNT, REQUESTS_AMOUNT, PAGES_AMOUNT, PROCESSES_COUNT,
                 0, lowerPPF[1], 1, LOCAL_PROB, MAX_LOCAL_COUNT, MAX_LOCAL_SUBSET);
         List<Proces> original = generator.deepCopyProcesses();
+        Random rand= new Random();
 
         int x = 0;
         for (double ppf : upperPPF) {
@@ -57,8 +59,10 @@ public class MainPolymorphicTest {
 
                     int pageFaults = alg.execute();
                     int thrashing = alg.getThrashing();
+                    int suspended = alg.getSuspensions();
 
-                    System.out.printf(" %10d / %-7d", pageFaults, thrashing);
+
+                    System.out.printf(" %10d / %-5d / %1d", pageFaults, thrashing, suspended);
                 }
                 System.out.println();
             }

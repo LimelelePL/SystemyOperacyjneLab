@@ -28,7 +28,7 @@ public class ProportionalAlgorithm extends BaseAlgorithm {
         int errs = 0;
         // Obliczanie sumy unikalnych stron dla wszystkich procesów
         long totalUniquePagesSum = 0;
-        List<Proces> currentProcesses = deepCopyProcesses(); // Pracujemy na kopii
+        List<Proces> currentProcesses = deepCopyProcesses();
         List<Integer> uniquePagesPerProcess = new ArrayList<>();
 
         for (Proces p : currentProcesses) {
