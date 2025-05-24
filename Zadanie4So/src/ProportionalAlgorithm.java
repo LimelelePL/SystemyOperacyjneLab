@@ -15,12 +15,12 @@ public class ProportionalAlgorithm extends BaseAlgorithm {
 
     // Nowy konstruktor
     public ProportionalAlgorithm(int framesCount, int requestCount, int maxID, int processesCount,
-                                 double ppfPercentage, int zoneCoef,
+                                 double ppfPercentage, double lower, int zoneCoef,
                                  double localProbability, int localCount, int localSubset,
                                  List<Proces> preGeneratedProcesses) {
         super(framesCount, requestCount, maxID, processesCount,
-                ppfPercentage, zoneCoef,
-                localProbability, localCount, localSubset, preGeneratedProcesses);
+                ppfPercentage, lower, zoneCoef,
+                localProbability,  localCount, localSubset, preGeneratedProcesses);
     }
 
     @Override

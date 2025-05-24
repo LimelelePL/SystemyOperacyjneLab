@@ -11,17 +11,16 @@ public class SteeringPffAlgorithm extends BaseAlgorithm {
 
     // Nowy konstruktor
     public SteeringPffAlgorithm(int framesCount, int requestCount, int maxID, int processesCount,
-                                double ppfPercentage, int zoneCoef,
+                                double ppfPercentage, double lower, int zoneCoef,
                                 double localProbability, int localCount, int localSubset,
                                 List<Proces> preGeneratedProcesses) {
         super(framesCount, requestCount, maxID, processesCount,
-                ppfPercentage, zoneCoef,
+                ppfPercentage, lower, zoneCoef,
                 localProbability, localCount, localSubset, preGeneratedProcesses);
     }
 
     // Parametry algorytmu
     private static final int DELTA_T = 50; // Rozmiar okna dla PPF
-    private static final double LOWER = 0.1; // Dolny próg PPF
     private static final int MIN_FRAMES = 1; // Minimalna liczba ramek dla procesu
     
     // Licznik wznowień procesów
@@ -31,7 +30,9 @@ public class SteeringPffAlgorithm extends BaseAlgorithm {
     @Override
     public int execute() {
         int errsTotal = 0;
-        final double UPPER = ppfPercentage; // Górny próg PPF (z parametru)
+        final double UPPER = upper;// Górny próg PPF (z parametru)
+        final double LOWER= lower; // Dolny próg PPF (z parametru)
+
 
         List<Proces> copy = deepCopyProcesses();
         int[] frames = new int[copy.size()];

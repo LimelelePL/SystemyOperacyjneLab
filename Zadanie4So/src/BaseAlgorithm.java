@@ -3,7 +3,8 @@ import java.util.*;
 
 public abstract class BaseAlgorithm implements PageReplacementAlgorithm {
     protected final int framesCount, requestCount, maxID, processesCount;
-    protected final double ppfPercentage;
+    protected final double upper;
+    protected final double lower;
     protected final int zoneCoef;
     protected final double localProbability;
     protected final int localCount, localSubset;
@@ -21,7 +22,8 @@ public abstract class BaseAlgorithm implements PageReplacementAlgorithm {
                          int requestCount,
                          int maxID,
                          int processesCount,
-                         double ppfPercentage,
+                         double upper,
+                         double lower,
                          int zoneCoef,
                          double localProbability,
                          int localCount,
@@ -30,7 +32,9 @@ public abstract class BaseAlgorithm implements PageReplacementAlgorithm {
         this.requestCount   = requestCount;
         this.maxID          = maxID;
         this.processesCount = processesCount;
-        this.ppfPercentage  = ppfPercentage;
+        this.upper  = upper;
+        this.lower  = lower;
+
         this.zoneCoef       = zoneCoef;
         this.localProbability = localProbability;
         this.localCount     = localCount;
@@ -46,7 +50,8 @@ public abstract class BaseAlgorithm implements PageReplacementAlgorithm {
                          int requestCount,
                          int maxID,
                          int processesCount,
-                         double ppfPercentage,
+                         double upper,
+                         double lower,
                          int zoneCoef,
                          double localProbability,
                          int localCount,
@@ -56,7 +61,8 @@ public abstract class BaseAlgorithm implements PageReplacementAlgorithm {
         this.requestCount   = requestCount; // Może być nieużywane jeśli procesy są pre-generowane
         this.maxID          = maxID; // Może być nieużywane jeśli procesy są pre-generowane
         this.processesCount = processesCount; // Powinno odpowiadać preGeneratedProcesses.size()
-        this.ppfPercentage  = ppfPercentage;
+        this.upper  = upper;
+        this.lower  = lower;
         this.zoneCoef       = zoneCoef;
         this.localProbability = localProbability; // Może być nieużywane jeśli procesy są pre-generowane
         this.localCount     = localCount; // Może być nieużywane jeśli procesy są pre-generowane
