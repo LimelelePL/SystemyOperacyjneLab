@@ -6,10 +6,10 @@ public class MainPolymorphicTest {
         final int FRAME_COUNT = 150;
         final int REQUESTS_AMOUNT = 10000;
         final int PAGES_AMOUNT = 250;
-        final int PROCESSES_COUNT = 9;
-        final double LOCAL_PROB = 0.05;
+        final int PROCESSES_COUNT = 8;
+        final double LOCAL_PROB = 0.1;
         final int MAX_LOCAL_COUNT = 100;
-        final int MAX_LOCAL_SUBSET = 100;
+        final int MAX_LOCAL_SUBSET = 200;
         double[] upperPPF = {0.3, 0.5, 0.7, 0.9};
         double[] lowerPPF = {0.1, 0.2, 0.2, 0.3};
         int[] wssSizes = {10, 20, 30, 40, 50};
