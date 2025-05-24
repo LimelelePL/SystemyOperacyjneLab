@@ -10,6 +10,16 @@ public class EqualAlgorithm extends BaseAlgorithm {
                 localProbability, localCount, localSubset);
     }
 
+    // Nowy konstruktor
+    public EqualAlgorithm(int framesCount, int requestCount, int maxID, int processesCount,
+                          double ppfPercentage, int zoneCoef,
+                          double localProbability, int localCount, int localSubset,
+                          List<Proces> preGeneratedProcesses) {
+        super(framesCount, requestCount, maxID, processesCount,
+                ppfPercentage, zoneCoef,
+                localProbability, localCount, localSubset, preGeneratedProcesses);
+    }
+
     @Override
     public int execute() {
         int errs = 0;
@@ -25,3 +35,4 @@ public class EqualAlgorithm extends BaseAlgorithm {
         return "Equal";
     }
 }
+

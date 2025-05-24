@@ -1,12 +1,22 @@
 import java.util.*;
 
 public class SteeringPffAlgorithm extends BaseAlgorithm {
+//    public SteeringPffAlgorithm(int framesCount, int requestCount, int maxID, int processesCount,
+//                                double ppfPercentage, int zoneCoef,
+//                                double localProbability, int localCount, int localSubset) {
+//        super(framesCount, requestCount, maxID, processesCount,
+//                ppfPercentage, zoneCoef,
+//                localProbability, localCount, localSubset);
+//    }
+
+    // Nowy konstruktor
     public SteeringPffAlgorithm(int framesCount, int requestCount, int maxID, int processesCount,
                                 double ppfPercentage, int zoneCoef,
-                                double localProbability, int localCount, int localSubset) {
+                                double localProbability, int localCount, int localSubset,
+                                List<Proces> preGeneratedProcesses) {
         super(framesCount, requestCount, maxID, processesCount,
                 ppfPercentage, zoneCoef,
-                localProbability, localCount, localSubset);
+                localProbability, localCount, localSubset, preGeneratedProcesses);
     }
 
     // Parametry algorytmu
@@ -22,14 +32,54 @@ public class SteeringPffAlgorithm extends BaseAlgorithm {
     public int execute() {
         int errsTotal = 0;
         final double UPPER = ppfPercentage; // Górny próg PPF (z parametru)
-        int perProc = Math.max(MIN_FRAMES, framesCount / processesCount);
 
         List<Proces> copy = deepCopyProcesses();
-
         int[] frames = new int[copy.size()];
-        Arrays.fill(frames, perProc);
 
-        int freeFrames = framesCount - perProc * copy.size();
+        // Obliczanie początkowego przydziału proporcjonalnego
+        long totalUniquePagesSum = 0;
+        List<Integer> uniquePagesPerProcess = new ArrayList<>();
+        for (Proces p : copy) {
+            Set<Integer> uniquePageIds = new HashSet<>();
+            for (Page pageRequest : p.requests) {
+                uniquePageIds.add(pageRequest.id);
+            }
+            uniquePagesPerProcess.add(uniquePageIds.size());
+            totalUniquePagesSum += uniquePageIds.size();
+        }
+
+        int allocatedFramesSum = 0;
+        if (totalUniquePagesSum == 0) { // Zabezpieczenie przed dzieleniem przez zero i brakiem żądań
+            int equalShare = Math.max(MIN_FRAMES, framesCount / (copy.size() > 0 ? copy.size() : 1));
+            for (int i = 0; i < copy.size(); i++) {
+                frames[i] = equalShare;
+                allocatedFramesSum += equalShare;
+            }
+        } else {
+            for (int i = 0; i < copy.size(); i++) {
+                int si = uniquePagesPerProcess.get(i);
+                int framesForProcess = (int) Math.round(((double) si / totalUniquePagesSum) * framesCount);
+                frames[i] = Math.max(MIN_FRAMES, framesForProcess);
+                allocatedFramesSum += frames[i];
+            }
+        }
+
+        // Rozdziel ewentualne pozostałe ramki lub zabierz nadmiarowe
+        int freeFrames = framesCount - allocatedFramesSum;
+        // Prosta metoda dystrybucji/odbierania reszty - można ją udoskonalić
+        if (freeFrames > 0) {
+            for (int i = 0; i < copy.size() && freeFrames > 0; i = (i + 1) % copy.size()) {
+                frames[i]++;
+                freeFrames--;
+            }
+        } else if (freeFrames < 0) {
+            for (int i = 0; i < copy.size() && freeFrames < 0; i = (i + 1) % copy.size()) {
+                if (frames[i] > MIN_FRAMES) {
+                    frames[i]--;
+                    freeFrames++;
+                }
+            }
+        }
 
         // Flagi procesu
         boolean[] finished = new boolean[copy.size()];
@@ -58,10 +108,9 @@ public class SteeringPffAlgorithm extends BaseAlgorithm {
         while (processesAlive > 0) {
             // Spróbuj odwiesić zawieszone procesy, jeśli jest wolna pula ramek
             for (int pid = 0; pid < copy.size(); pid++) {
-                if (suspended[pid] && freeFrames >= perProc) {
+                if (suspended[pid] && freeFrames >= frames[pid]) {
                     suspended[pid] = false;
-                    freeFrames -= perProc;
-                    frames[pid] = perProc; // Odwieszenie – przydziel minimum ramek
+                    freeFrames -= frames[pid];
                     resumeCount++;
                     // Nie inkrementuj processesAlive – nie był odjęty!
                 }

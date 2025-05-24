@@ -1,12 +1,22 @@
 import java.util.*;
 
 public class ZoneModelAlgorithm extends BaseAlgorithm {
+//    public ZoneModelAlgorithm(int framesCount, int requestCount, int maxID, int processesCount,
+//                              double ppfPercentage, int zoneCoef,
+//                              double localProbability, int localCount, int localSubset) {
+//        super(framesCount, requestCount, maxID, processesCount,
+//                ppfPercentage, zoneCoef,
+//                localProbability, localCount, localSubset);
+//    }
+
+    // Nowy konstruktor
     public ZoneModelAlgorithm(int framesCount, int requestCount, int maxID, int processesCount,
                               double ppfPercentage, int zoneCoef,
-                              double localProbability, int localCount, int localSubset) {
+                              double localProbability, int localCount, int localSubset,
+                              List<Proces> preGeneratedProcesses) {
         super(framesCount, requestCount, maxID, processesCount,
                 ppfPercentage, zoneCoef,
-                localProbability, localCount, localSubset);
+                localProbability, localCount, localSubset, preGeneratedProcesses);
     }
 
     @Override
@@ -60,16 +70,11 @@ public class ZoneModelAlgorithm extends BaseAlgorithm {
             if (minIdx == -1) break; // nie powinno się zdarzyć
 
             active[minIdx] = false;
-            suspensionCount++;// wstrzymujemy proces, jego ramki wracają do puli
-            
-            // Liczymy wstrzymanie tylko jeśli proces nie był wcześniej wstrzymany
-            if (!wasEverSuspended[minIdx]) {
-                suspensionCount++;
-                wasEverSuspended[minIdx] = true;
-            }
+            suspensionCount++;
         }
         return errsTotal;
     }
+
 
     @Override
     public String getName() {

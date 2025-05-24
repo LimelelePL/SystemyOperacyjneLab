@@ -18,4 +18,6 @@ public interface PageReplacementAlgorithm {
      * Zwraca liczbę wstrzymań procesów
      */
     int getSuspensions();
+
+    int getZoneCoef();
 }

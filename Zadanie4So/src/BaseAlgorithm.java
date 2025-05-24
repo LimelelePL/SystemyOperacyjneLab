@@ -40,19 +40,53 @@ public abstract class BaseAlgorithm implements PageReplacementAlgorithm {
     }
 
     /**
+     * Nowy konstruktor przyjmujący gotową listę procesów.
+     */
+    public BaseAlgorithm(int framesCount,
+                         int requestCount,
+                         int maxID,
+                         int processesCount,
+                         double ppfPercentage,
+                         int zoneCoef,
+                         double localProbability,
+                         int localCount,
+                         int localSubset,
+                         List<Proces> preGeneratedProcesses) {
+        this.framesCount     = framesCount;
+        this.requestCount   = requestCount; // Może być nieużywane jeśli procesy są pre-generowane
+        this.maxID          = maxID; // Może być nieużywane jeśli procesy są pre-generowane
+        this.processesCount = processesCount; // Powinno odpowiadać preGeneratedProcesses.size()
+        this.ppfPercentage  = ppfPercentage;
+        this.zoneCoef       = zoneCoef;
+        this.localProbability = localProbability; // Może być nieużywane jeśli procesy są pre-generowane
+        this.localCount     = localCount; // Może być nieużywane jeśli procesy są pre-generowane
+        this.localSubset    = localSubset; // Może być nieużywane jeśli procesy są pre-generowane
+
+        // Używamy głębokiej kopii dostarczonych procesów, aby uniknąć modyfikacji oryginalnej listy
+        this.processes = deepCopyProcessList(preGeneratedProcesses);
+    }
+
+    /**
      * Wspólna metoda generująca listę procesów i wektor żądań,
      * dokładnie jak w Twojej dotychczasowej metodzie generate().
      */
     private List<Proces> generateProcesses() {
         List<Page> allRequests = new ArrayList<>(requestCount);
+        int pagesPerProcess = this.maxID; // Przejrzystość: maxID to teraz strony na proces
+
         // --- generowanie ciągu żądań ---
         for (int i = 0; i < requestCount; i++) {
+            int proc = rnd.nextInt(processesCount); // Najpierw losujemy proces
+            int pageIdOffset = proc * pagesPerProcess; // Offset dla ID stron tego procesu
+
             if (rnd.nextDouble() < localProbability) {
-                int proc = rnd.nextInt(processesCount);
+                // Generowanie z lokalnością
                 int subsetSize = rnd.nextInt(localSubset) + 1;
                 List<Integer> subset = new ArrayList<>(subsetSize);
-                for (int j = 0; j < subsetSize; j++)
-                    subset.add(rnd.nextInt(maxID + 1));
+                for (int j = 0; j < subsetSize; j++) {
+                    // Lokalne ID strony (0 do pagesPerProcess-1), następnie przesunięte
+                    subset.add(pageIdOffset + rnd.nextInt(pagesPerProcess));
+                }
                 int locCnt = rnd.nextInt(localCount + 1);
                 for (int k = 0; k < locCnt; k++) {
                     allRequests.add(new Page(
@@ -60,9 +94,10 @@ public abstract class BaseAlgorithm implements PageReplacementAlgorithm {
                             0, proc
                     ));
                 }
+            } else {
+                // Generowanie bez lokalności (ale wciąż w ramach stron danego procesu)
+                allRequests.add(new Page(pageIdOffset + rnd.nextInt(pagesPerProcess), 0, proc));
             }
-            int proc = rnd.nextInt(processesCount);
-            allRequests.add(new Page(rnd.nextInt(maxID + 1), 0, proc));
         }
 
         // --- podział na procesy ---
@@ -82,6 +117,24 @@ public abstract class BaseAlgorithm implements PageReplacementAlgorithm {
         List<Proces> copy = new ArrayList<>(processesCount);
         for (Proces p : processes) {
             copy.add(new Proces(new ArrayList<>(p.requests), 0));
+        }
+        return copy;
+    }
+
+    /**
+     * Pomocnicza metoda do głębokiego kopiowania listy procesów.
+     * Używana przez nowy konstruktor.
+     */
+    private List<Proces> deepCopyProcessList(List<Proces> originalProcesses) {
+        if (originalProcesses == null) {
+            return generateProcesses(); // Fallback, gdyby null został przekazany
+        }
+        List<Proces> copy = new ArrayList<>(originalProcesses.size());
+        for (Proces p : originalProcesses) {
+            // Zakładamy, że Proces ma konstruktor, który tworzy głęboką kopię żądań
+            // lub że lista żądań w Proces jest kopiowana przy tworzeniu nowego Procesu.
+            // W obecnej implementacji Proces(List<Page> requests, int framesCount) tworzy nową ArrayList<>(requests).
+            copy.add(new Proces(new ArrayList<>(p.requests), p.framesCount));
         }
         return copy;
     }
@@ -157,4 +210,8 @@ public abstract class BaseAlgorithm implements PageReplacementAlgorithm {
     /** Każda klasa musi zaimplementować tę metodę */
     @Override
     public abstract int execute();
+
+    public int getZoneCoef() {
+        return zoneCoef;
+    }
 }
