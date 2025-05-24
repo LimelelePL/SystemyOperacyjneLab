@@ -21,7 +21,7 @@ public class SteeringPffAlgorithm extends BaseAlgorithm {
 
     // Parametry algorytmu
     private static final int DELTA_T = 50; // Rozmiar okna dla PPF
-    private static final double LOWER = 0.01; // Dolny próg PPF
+    private static final double LOWER = 0.1; // Dolny próg PPF
     private static final int MIN_FRAMES = 1; // Minimalna liczba ramek dla procesu
     
     // Licznik wznowień procesów

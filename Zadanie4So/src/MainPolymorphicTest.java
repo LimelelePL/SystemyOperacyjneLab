@@ -11,7 +11,7 @@ public class MainPolymorphicTest {
         final double LOCAL_PROB     = 0.05;
         final int MAX_LOCAL_COUNT   = 100;
         final int MAX_LOCAL_SUBSET  = 100;
-        double[] ppfCoeffs = {0.1, 0.3, 0.5, 0.7, 0.9};
+        double[] ppfCoeffs = {0.3,0.5, 0.7, 0.9};
         int[]  wssSizes  = {10, 20, 30, 40, 50};
 
         // Nagłówek tabeli z informacją o zawartości
