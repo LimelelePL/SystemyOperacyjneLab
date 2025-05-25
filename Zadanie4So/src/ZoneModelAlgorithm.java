@@ -59,18 +59,18 @@ public class ZoneModelAlgorithm extends BaseAlgorithm {
 
         boolean allProcessesDone = false;
 
-        while (!allProcessesDone) {
+        while (true) {
 
             // Sprawdź, czy możemy wznowić wstrzymane procesy
             int availableFrames = calculateAvailableFrames(allocatedFrames);
             for (int pid = 0; pid < processesCount; pid++) {
                 if (suspended[pid] && !finished[pid]) {
-                    if (availableFrames >= processWss[pid]) {
-                        // Możemy wznowić proces
+                    if (availableFrames > 0) {
+                        int allocated = Math.min(processWss[pid], availableFrames);
                         suspended[pid] = false;
                         active[pid] = true;
-                        allocatedFrames[pid] = processWss[pid];
-                        availableFrames -= processWss[pid];
+                        allocatedFrames[pid] = allocated;
+                        availableFrames -= allocated;
                     }
                 }
             }
