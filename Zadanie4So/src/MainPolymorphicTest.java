@@ -6,20 +6,20 @@ public class MainPolymorphicTest {
     public static void main(String[] args) {
         final int FRAME_COUNT = 200; //200
         final int REQUESTS_AMOUNT = 10000; //10000
-        final int PAGES_AMOUNT = 250; //250
-        final int PROCESSES_COUNT = 7;
-        final double LOCAL_PROB = 0.1;
-        final int MAX_LOCAL_COUNT = 200; //200
-        final int MAX_LOCAL_SUBSET = 200;
+        final int PAGES_AMOUNT = 350; //250
+        final int PROCESSES_COUNT = 10;
+        final double LOCAL_PROB = 0.07;
+        final int MAX_LOCAL_COUNT = 300; //200
+        final int MAX_LOCAL_SUBSET = 50;
         double[] upperPPF = {0.3, 0.5, 0.7, 0.9};
         double[] lowerPPF = {0.1, 0.2, 0.2, 0.3};
-        int[] wssSizes = { 50, 100,200,250,300,400,500,600,700,800,900,1000, 100000};
+        int[] wssSizes = { 50, 100,200,250,300,400,500,600,700,800,900,1000, 2000, 100000};
 
         System.out.println("Format komórki: PageFaults / Thrashing / suspensions");
         System.out.printf("%5s %5s %10s", "upper", "lower", "WSSDeltaT");
         List<String> names = List.of("Equal", "Proportional", "SteeringPFF", "ZoneModel");
         for (String n : names) System.out.printf(" %20s", n);
-        System.out.println();
+        System.out.println();;
 
         // Separacja nagłówka
         System.out.print("─────────────");
@@ -30,6 +30,7 @@ public class MainPolymorphicTest {
 
         BaseAlgorithm generator = new EqualAlgorithm(FRAME_COUNT, REQUESTS_AMOUNT, PAGES_AMOUNT, PROCESSES_COUNT,
                 0, lowerPPF[1], 1, LOCAL_PROB, MAX_LOCAL_COUNT, MAX_LOCAL_SUBSET);
+        System.out.println(generator.requestCount );
         List<Proces> original = generator.deepCopyProcesses();
         Random rand= new Random();
 

@@ -78,20 +78,26 @@ public abstract class BaseAlgorithm implements PageReplacementAlgorithm {
      */
     private List<Proces> generateProcesses() {
         List<Page> allRequests = new ArrayList<>(requestCount);
-        int pagesPerProcess = this.maxID; // Przejrzystość: maxID to teraz strony na proces
+        int pagesPerProcess = this.maxID;
+
+        // --- Nowa sekcja: generowanie maksymalnej liczby unikalnych stron dla każdego procesu ---
+        int[] maxUniquePerProcess = new int[processesCount];
+        for (int i = 0; i < processesCount; i++) {
+            // Losuj liczbę unikalnych stron dla procesu (50-250)
+            maxUniquePerProcess[i] = 50 + rnd.nextInt(maxID - 50 + 1);
+        }
 
         // --- generowanie ciągu żądań ---
         for (int i = 0; i < requestCount; i++) {
-            int proc = rnd.nextInt(processesCount); // Najpierw losujemy proces
-            int pageIdOffset = proc * pagesPerProcess; // Offset dla ID stron tego procesu
+            int proc = rnd.nextInt(processesCount);
+            int pageIdOffset = proc * pagesPerProcess;
 
             if (rnd.nextDouble() < localProbability) {
-                // Generowanie z lokalnością
+                // Generowanie z lokalnością (podzbiór stron ograniczony do maxUniquePerProcess)
                 int subsetSize = rnd.nextInt(localSubset) + 1;
                 List<Integer> subset = new ArrayList<>(subsetSize);
                 for (int j = 0; j < subsetSize; j++) {
-                    // Lokalne ID strony (0 do pagesPerProcess-1), następnie przesunięte
-                    subset.add(pageIdOffset + rnd.nextInt(pagesPerProcess));
+                    subset.add(pageIdOffset + rnd.nextInt(maxUniquePerProcess[proc]));
                 }
                 int locCnt = rnd.nextInt(localCount + 1);
                 for (int k = 0; k < locCnt; k++) {
@@ -101,8 +107,9 @@ public abstract class BaseAlgorithm implements PageReplacementAlgorithm {
                     ));
                 }
             } else {
-                // Generowanie bez lokalności (ale wciąż w ramach stron danego procesu)
-                allRequests.add(new Page(pageIdOffset + rnd.nextInt(pagesPerProcess), 0, proc));
+                // Generowanie bez lokalności (strona z zakresu 0 do maxUniquePerProcess-1)
+                int pageId = pageIdOffset + rnd.nextInt(maxUniquePerProcess[proc]);
+                allRequests.add(new Page(pageId, 0, proc));
             }
         }
 
@@ -115,6 +122,13 @@ public abstract class BaseAlgorithm implements PageReplacementAlgorithm {
                     reqs.add(p);
             procList.add(new Proces(reqs, 0));
         }
+
+        int totalRequests = 0;
+        for (Proces p : procList) {
+            totalRequests += p.requests.size();
+        }
+        System.out.println("liczba żądań: " + totalRequests);
+        System.out.println("liczba procesów: " + procList.size());
         return procList;
     }
 

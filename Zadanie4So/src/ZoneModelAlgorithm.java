@@ -52,7 +52,6 @@ public class ZoneModelAlgorithm extends BaseAlgorithm {
             evictedPageSets[i] = new HashSet<>();
         }
 
-        // Struktury dla ramek pamięci
         Map<Integer, List<Page>> framesByProcess = new HashMap<>();
 
         // Główna pętla symulacji
@@ -61,7 +60,7 @@ public class ZoneModelAlgorithm extends BaseAlgorithm {
 
         while (true) {
 
-            // Sprawdź, czy możemy wznowić wstrzymane procesy
+            // Sprawdzamy czy możemy wznowić wstrzymane procesy
             int availableFrames = calculateAvailableFrames(allocatedFrames);
             for (int pid = 0; pid < processesCount; pid++) {
                 if (suspended[pid] && !finished[pid]) {
@@ -75,7 +74,7 @@ public class ZoneModelAlgorithm extends BaseAlgorithm {
                 }
             }
 
-            // Krok 1: Wykonaj c żądań dla każdego aktywnego procesu
+            // ----------------Wykonujemy c żądań dla każdego aktywnego procesu--------------
             for (int pid = 0; pid < processesCount; pid++) {
                 if (!active[pid] || finished[pid]) continue;
 
@@ -87,15 +86,13 @@ public class ZoneModelAlgorithm extends BaseAlgorithm {
                 }
                 List<Page> frames = framesByProcess.get(pid);
 
-                // Pobierz struktury szamotania
+                // do szamotania
                 Queue<Integer> evictedQueue = recentlyEvicted[pid];
                 Set<Integer> evictedSet = evictedPageSets[pid];
 
-                // Wykonaj c żądań lub dopóki proces ma żądania
+                // Wykonuejemy c żądań lub dopóki proces ma żądania
                 int requestsProcessed = 0;
                 while (requestsProcessed < c && currentIndex[pid] < process.requests.size()) {
-
-
 
                     Page request = process.requests.get(currentIndex[pid]);
 
@@ -105,7 +102,7 @@ public class ZoneModelAlgorithm extends BaseAlgorithm {
                         recentRequests[pid].remove(0);
                     }
 
-                    // Symulujemy odwołanie do strony
+                    // odwołanie do strony
                     boolean hit = false;
                     for (Page frame : frames) {
                         if (frame.id == request.id) {
@@ -115,7 +112,7 @@ public class ZoneModelAlgorithm extends BaseAlgorithm {
                         }
                     }
 
-                    // Sprawdź czy to szamotanie
+                    // Sprawdzamy szamotanie
                     if (!hit && evictedSet.contains(request.id)) {
                         thrashingCount++;
                     }
@@ -152,22 +149,22 @@ public class ZoneModelAlgorithm extends BaseAlgorithm {
                 }
 
 
-                // Sprawdź, czy proces zakończył wszystkie żądania
+                // Sprawdzamy, czy proces zakończył wszystkie żądania
                 if (currentIndex[pid] >= process.requests.size()) {
                     active[pid] = false;
                     finished[pid] = true;
-                    // Zwolnij ramki procesu
+                    // Zwalniamy ramki procesu
                     allocatedFrames[pid] = 0;
                     framesByProcess.remove(pid);
                 }
             }
 
-            // Krok 2: Oblicz WSS dla każdego procesu
+            //--------- Obliczamy WSS dla każdego procesu------------
             int totalWSS = 0;
             for (int pid = 0; pid < processesCount; pid++) {
                 if (finished[pid]) continue;
 
-                // Oblicz WSS tylko jeśli mamy wystarczająco danych
+                // Obliczamy WSS tylko jeśli mamy wystarczająco danych
                 if (!recentRequests[pid].isEmpty()) {
                     Set<Integer> uniquePages = new HashSet<>(recentRequests[pid]);
                     processWss[pid] = Math.max(1, uniquePages.size());
@@ -178,7 +175,7 @@ public class ZoneModelAlgorithm extends BaseAlgorithm {
                 }
             }
 
-            // Sprawdź, czy wszystkie procesy zakończyły pracę
+            // Sprawdzamy czy wszystkie procesy zakończyły pracę
             allProcessesDone = true;
             for (int i = 0; i < processesCount; i++) {
                 if (!finished[i]) {
@@ -188,7 +185,7 @@ public class ZoneModelAlgorithm extends BaseAlgorithm {
             }
             if (allProcessesDone) break;
 
-            // Krok 3: Sprawdź, czy suma WSS przekracza dostępne ramki
+            // --------------------czy suma WSS przekracza dostępne ramki-----------------------
             if (totalWSS <= framesCount) {
                 // Jeśli wystarczy ramek, każdy proces dostaje tyle, ile wynosi jego WSS
                 for (int pid = 0; pid < processesCount; pid++) {
@@ -197,7 +194,7 @@ public class ZoneModelAlgorithm extends BaseAlgorithm {
                     }
                 }
             } else {
-                // Jeśli brakuje ramek, wstrzymaj proces o największym WSS
+                // Jeśli brakuje ramek, wstrzymujemy proces o największym WSS
                 int maxWssPid = -1;
                 int maxWssValue = -1;
 
@@ -209,21 +206,21 @@ public class ZoneModelAlgorithm extends BaseAlgorithm {
                 }
 
                 if (maxWssPid != -1) {
-                    // Wstrzymaj proces o największym WSS
+                    // Wstrzymajemy proces o największym WSS
                     active[maxWssPid] = false;
                     suspended[maxWssPid] = true;
                     suspensionCount++;
 
-                    // Zwolnij ramki tego procesu
+                    // Zwolniamy ramki tego procesu
                     int freedFrames = allocatedFrames[maxWssPid];
                     allocatedFrames[maxWssPid] = 0;
 
-                    // Redystrybuuj zwolnione ramki
-                    if (totalWSS > maxWssValue) { // Zapobiega dzieleniu przez zero
+                    // Redystrybuujemy zwolnione ramki
+                    if (totalWSS > maxWssValue) {
                         totalWSS -= maxWssValue;
                         redistributeFrames(allocatedFrames, processWss, active, finished, freedFrames, totalWSS);
                     } else {
-                        // Jeśli został tylko jeden proces, daj mu wszystkie zwolnione ramki
+                        // Jeśli został tylko jeden proces, dajemy mu wszystkie zwolnione ramki
                         for (int pid = 0; pid < processesCount; pid++) {
                             if (active[pid] && !finished[pid]) {
                                 allocatedFrames[pid] += freedFrames;
