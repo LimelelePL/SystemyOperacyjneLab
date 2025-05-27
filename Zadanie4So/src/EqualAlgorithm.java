@@ -10,7 +10,6 @@ public class EqualAlgorithm extends BaseAlgorithm {
                 localProbability, localCount, localSubset);
     }
 
-    // Nowy konstruktor
     public EqualAlgorithm(int framesCount, int requestCount, int maxID, int processesCount,
                           double ppfPercentage, double lower, int zoneCoef,
                           double localProbability, int localCount, int localSubset,

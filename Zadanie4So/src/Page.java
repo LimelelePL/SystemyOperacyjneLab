@@ -1,4 +1,4 @@
-// Page.java
+
 public class Page {
     public final int id;
     public final int processID;

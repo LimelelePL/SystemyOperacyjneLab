@@ -5,7 +5,7 @@ public abstract class BaseAlgorithm implements PageReplacementAlgorithm {
     protected final int framesCount, requestCount, maxID, processesCount;
     protected final double upper;
     protected final double lower;
-    protected final int zoneCoef;
+    protected final int deltaT;
     protected final double localProbability;
     protected final int localCount, localSubset;
     protected final List<Proces> processes;
@@ -24,7 +24,7 @@ public abstract class BaseAlgorithm implements PageReplacementAlgorithm {
                          int processesCount,
                          double upper,
                          double lower,
-                         int zoneCoef,
+                         int deltaT,
                          double localProbability,
                          int localCount,
                          int localSubset) {
@@ -35,7 +35,7 @@ public abstract class BaseAlgorithm implements PageReplacementAlgorithm {
         this.upper  = upper;
         this.lower  = lower;
 
-        this.zoneCoef       = zoneCoef;
+        this.deltaT       = deltaT;
         this.localProbability = localProbability;
         this.localCount     = localCount;
         this.localSubset    = localSubset;
@@ -52,7 +52,7 @@ public abstract class BaseAlgorithm implements PageReplacementAlgorithm {
                          int processesCount,
                          double upper,
                          double lower,
-                         int zoneCoef,
+                         int deltaT,
                          double localProbability,
                          int localCount,
                          int localSubset,
@@ -63,7 +63,7 @@ public abstract class BaseAlgorithm implements PageReplacementAlgorithm {
         this.processesCount = processesCount; // Powinno odpowiadać preGeneratedProcesses.size()
         this.upper  = upper;
         this.lower  = lower;
-        this.zoneCoef       = zoneCoef;
+        this.deltaT       = deltaT;
         this.localProbability = localProbability; // Może być nieużywane jeśli procesy są pre-generowane
         this.localCount     = localCount; // Może być nieużywane jeśli procesy są pre-generowane
         this.localSubset    = localSubset; // Może być nieużywane jeśli procesy są pre-generowane
@@ -80,20 +80,20 @@ public abstract class BaseAlgorithm implements PageReplacementAlgorithm {
         List<Page> allRequests = new ArrayList<>(requestCount);
         int pagesPerProcess = this.maxID;
 
-        // --- Nowa sekcja: generowanie maksymalnej liczby unikalnych stron dla każdego procesu ---
+        //generowanie maksymalnej liczby unikalnych stron dla każdego procesu
         int[] maxUniquePerProcess = new int[processesCount];
         for (int i = 0; i < processesCount; i++) {
             // Losuj liczbę unikalnych stron dla procesu (50-250)
             maxUniquePerProcess[i] = 50 + rnd.nextInt(maxID - 50 + 1);
         }
 
-        // --- generowanie ciągu żądań ---
+        // generowanie globalnego ciągu żądań
         for (int i = 0; i < requestCount; i++) {
             int proc = rnd.nextInt(processesCount);
             int pageIdOffset = proc * pagesPerProcess;
 
             if (rnd.nextDouble() < localProbability) {
-                // Generowanie z lokalnością (podzbiór stron ograniczony do maxUniquePerProcess)
+                // Generowanie z lokalnością )
                 int subsetSize = rnd.nextInt(localSubset) + 1;
                 List<Integer> subset = new ArrayList<>(subsetSize);
                 for (int j = 0; j < subsetSize; j++) {
@@ -113,7 +113,7 @@ public abstract class BaseAlgorithm implements PageReplacementAlgorithm {
             }
         }
 
-        // --- podział na procesy ---
+        // podział na procesy
         List<Proces> procList = new ArrayList<>(processesCount);
         for (int i = 0; i < processesCount; i++) {
             List<Page> reqs = new ArrayList<>();
@@ -132,7 +132,7 @@ public abstract class BaseAlgorithm implements PageReplacementAlgorithm {
         return procList;
     }
 
-    /** Głęboka kopia procesów (żeby nie mieszać referencji) */
+    // Głęboka kopia procesów
     protected List<Proces> deepCopyProcesses() {
         List<Proces> copy = new ArrayList<>(processesCount);
         for (Proces p : processes) {
@@ -141,19 +141,12 @@ public abstract class BaseAlgorithm implements PageReplacementAlgorithm {
         return copy;
     }
 
-    /**
-     * Pomocnicza metoda do głębokiego kopiowania listy procesów.
-     * Używana przez nowy konstruktor.
-     */
     private List<Proces> deepCopyProcessList(List<Proces> originalProcesses) {
         if (originalProcesses == null) {
             return generateProcesses(); // Fallback, gdyby null został przekazany
         }
         List<Proces> copy = new ArrayList<>(originalProcesses.size());
         for (Proces p : originalProcesses) {
-            // Zakładamy, że Proces ma konstruktor, który tworzy głęboką kopię żądań
-            // lub że lista żądań w Proces jest kopiowana przy tworzeniu nowego Procesu.
-            // W obecnej implementacji Proces(List<Page> requests, int framesCount) tworzy nową ArrayList<>(requests).
             copy.add(new Proces(new ArrayList<>(p.requests), p.framesCount));
         }
         return copy;
@@ -161,18 +154,22 @@ public abstract class BaseAlgorithm implements PageReplacementAlgorithm {
 
     /**
      * Pomocnicze LRU dla listy zapytań całego procesu.
-     * Zmodyfikowane aby śledzić szamotania.
      */
     protected int lruList(List<Page> pagesRef, int frameSize) {
-        int errs = 0;
-        List<Page> frames = new ArrayList<>();
-        
-        // Lista ostatnio usuniętych stron dla wykrywania szamotań
+        int errs = 0; // Licznik błędów stron
+        List<Page> frames = new ArrayList<>(); // Lista ramek trzymanych aktualnie
+
+        // Bufor usuniętych stron – potrzebny do sprawdzenia, czy dana strona była niedawno usunięta
         Queue<Integer> recentlyEvicted = new LinkedList<>();
         Set<Integer> evictedSet = new HashSet<>();
-        
+
+        // Bufor historii błędów – potrzebny do sprawdzenia, czy mamy dużą częstość błędów (PPF)
+        Queue<Boolean> faultHistory = new LinkedList<>();
+
         for (Page req : pagesRef) {
             boolean hit = false;
+
+            // Szukam strony w aktualnie załadowanych ramkach – jeśli jest, to trafienie
             for (Page f : frames) {
                 if (f.id == req.id) {
                     f.lastUsed++;
@@ -180,40 +177,59 @@ public abstract class BaseAlgorithm implements PageReplacementAlgorithm {
                     break;
                 }
             }
-            
-            // Sprawdź czy żądany element był niedawno usunięty (szamotanie)
-            if (!hit && evictedSet.contains(req.id)) {
-                thrashingCount++;
+
+            // Aktualizuję historię błędów – dodaję true/false zależnie od tego, czy był błąd
+            boolean wasFault = !hit;
+            faultHistory.add(wasFault);
+            if (faultHistory.size() > THRASHING_WINDOW) {
+                faultHistory.poll(); // Usuwam najstarszy wpis, żeby utrzymać rozmiar bufora
             }
-            
+
+            // Sprawdzam, czy mamy do czynienia z szamotaniem
+            // – tylko jeśli jest błąd, strona była usunięta i mamy duży procent błędów w ostatnim czasie
             if (!hit) {
-                errs++;
+                int recentFaults = 0;
+                for (boolean b : faultHistory) if (b) recentFaults++;
+                double faultRate = (double) recentFaults / faultHistory.size();
+
+                if (faultRate > 0.8 && evictedSet.contains(req.id)) {
+                    thrashingCount++; // Szamotanie wykryte!
+                }
+            }
+
+            // Obsługa błędu strony
+            if (!hit) {
+                errs++; // Zwiększam licznik błędów
+
                 if (frames.size() < frameSize) {
+                    // Jest miejsce – po prostu dodaję stronę
                     frames.add(new Page(req.id, req.lastUsed, req.processID));
                 } else {
+                    // Ramki pełne – muszę usunąć najmniej używaną (LRU)
                     frames.sort(Comparator.comparingInt(p -> p.lastUsed));
-                    
-                    // Dodaj usunięty element do listy ostatnio usuniętych
                     int evictedId = frames.get(0).id;
+
+                    // Dodaję usuniętą stronę do bufora do śledzenia
                     recentlyEvicted.add(evictedId);
                     evictedSet.add(evictedId);
-                    
-                    // Usuwamy stare wartości z okna czasowego
+
+                    // Utrzymuję THRASHING_WINDOW – jeśli jest za dużo, usuwam najstarsze
                     if (recentlyEvicted.size() > THRASHING_WINDOW) {
                         int oldId = recentlyEvicted.poll();
-                        // Usuwamy z setu jeśli nie ma więcej wystąpień w kolejce
                         if (!recentlyEvicted.contains(oldId)) {
                             evictedSet.remove(oldId);
                         }
                     }
-                    
+
+                    // Usuwam LRU i dodaję nową stronę
                     frames.remove(0);
                     frames.add(new Page(req.id, req.lastUsed, req.processID));
                 }
             }
         }
-        return errs;
+        return errs; // Zwracam liczbę błędów stron
     }
+
 
     /** Zwraca liczbę szamotań (thrashing) */
     @Override
@@ -231,7 +247,4 @@ public abstract class BaseAlgorithm implements PageReplacementAlgorithm {
     @Override
     public abstract int execute();
 
-    public int getZoneCoef() {
-        return zoneCoef;
-    }
 }

@@ -4,47 +4,41 @@ public class ZoneModelAlgorithm extends BaseAlgorithm {
 
     // Istniejący konstruktor z preGeneratedProcesses
     public ZoneModelAlgorithm(int framesCount, int requestCount, int maxID, int processesCount,
-                              double ppfPercentage, double lower, int zoneCoef,
+                              double ppfPercentage, double lower, int deltaT,
                               double localProbability, int localCount, int localSubset,
                               List<Proces> preGeneratedProcesses) {
         super(framesCount, requestCount, maxID, processesCount,
-                ppfPercentage, lower, zoneCoef,
+                ppfPercentage, lower, deltaT,
                 localProbability, localCount, localSubset, preGeneratedProcesses);
     }
 
     @Override
     public int execute() {
-        int errsTotal = 0;
-
-        // Parametry algorytmu
-        final int deltaT = zoneCoef;        // Rozmiar okna dla WSS (delta t)
-        final int c = Math.max(1, deltaT/2);
-        // Częstość przeliczania WSS (c < delta_t)
-
+        int errsTotal = 0; // Zliczam całkowitą liczbę błędów stron – zwracam ją na końcu
+        final int c = Math.max(1, deltaT / 2); // Co ile żądań przeliczam WSS
         List<Proces> processes = deepCopyProcesses();
 
-        // Struktury danych potrzebne do symulacji
-        int[] currentIndex = new int[processesCount];     // Indeks aktualnego żądania dla każdego procesu
-        boolean[] active = new boolean[processesCount];   // Aktywne procesy
-        boolean[] suspended = new boolean[processesCount]; // Wstrzymane procesy
-        boolean[] finished = new boolean[processesCount]; // Zakończone procesy
-        int[] allocatedFrames = new int[processesCount];  // Przydzielone ramki dla każdego procesu
-        int[] processWss = new int[processesCount];       // Przechowuje ostatni obliczony WSS dla każdego procesu
+        int[] currentIndex = new int[processesCount]; // Indeks żądania, które aktualnie obsługuje proces
+        boolean[] active = new boolean[processesCount]; // Czy proces jest aktywny (może działać)
+        boolean[] suspended = new boolean[processesCount]; // Czy proces jest zawieszony (brak ramek)
+        boolean[] finished = new boolean[processesCount]; // Czy proces zakończył działanie
+        int[] allocatedFrames = new int[processesCount]; // Liczba ramek przydzielonych procesowi
+        int[] processWss = new int[processesCount]; // Ostatnio obliczona wartość WSS dla każdego procesu
 
-        // Inicjalizacja - wszystkie procesy aktywne i mają minimum 1 ramkę
+        // na poczatku każdy proces dostaje jedną ramkę i jest aktywny
         Arrays.fill(active, true);
         for (int i = 0; i < processesCount; i++) {
             allocatedFrames[i] = 1;
-            processWss[i] = 1; // Początkowe WSS = 1 (minimum)
+            processWss[i] = 1;
         }
 
-        // Bufor ostatnich deltaT żądań dla każdego procesu (do obliczania WSS)
+        // Bufory z ostatnimi żądaniami do wyliczenia WSS na podstawie unikalnych stron
         List<Integer>[] recentRequests = new ArrayList[processesCount];
         for (int i = 0; i < processesCount; i++) {
             recentRequests[i] = new ArrayList<>();
         }
 
-        // Struktury dla szamotania
+        // do wykrywania szamotania
         Queue<Integer>[] recentlyEvicted = new LinkedList[processesCount];
         Set<Integer>[] evictedPageSets = new HashSet[processesCount];
         for (int i = 0; i < processesCount; i++) {
@@ -52,15 +46,20 @@ public class ZoneModelAlgorithm extends BaseAlgorithm {
             evictedPageSets[i] = new HashSet<>();
         }
 
-        Map<Integer, List<Page>> framesByProcess = new HashMap<>();
+        // Bufory historii błędów stron żeby móc wykryć nadmiarową częstość błędów
+        Queue<Boolean>[] faultHistory = new LinkedList[processesCount];
+        for (int i = 0; i < processesCount; i++) {
+            faultHistory[i] = new LinkedList<>();
+        }
 
-        // Główna pętla symulacji
+        // Mapa ramek przypisanych do każdego procesu
+        Map<Integer, List<Page>> framesByProcess = new HashMap<>();
 
         boolean allProcessesDone = false;
 
-        while (true) {
+        while (!allProcessesDone) {
 
-            // Sprawdzamy czy możemy wznowić wstrzymane procesy
+            // Sprawdzam, czy któryś proces zawieszony może wrócić do działania (czy są wolne ramki)
             int availableFrames = calculateAvailableFrames(allocatedFrames);
             for (int pid = 0; pid < processesCount; pid++) {
                 if (suspended[pid] && !finished[pid]) {
@@ -74,35 +73,31 @@ public class ZoneModelAlgorithm extends BaseAlgorithm {
                 }
             }
 
-            // ----------------Wykonujemy c żądań dla każdego aktywnego procesu--------------
+            // Każdy aktywny proces wykonuje c żądań stron
             for (int pid = 0; pid < processesCount; pid++) {
                 if (!active[pid] || finished[pid]) continue;
 
                 Proces process = processes.get(pid);
 
-                // Lista ramek dla procesu
-                if (!framesByProcess.containsKey(pid)) {
-                    framesByProcess.put(pid, new ArrayList<>());
-                }
+                // Jeśli proces nie ma jeszcze ramek  tworzę je
+                framesByProcess.putIfAbsent(pid, new ArrayList<>());
                 List<Page> frames = framesByProcess.get(pid);
 
-                // do szamotania
                 Queue<Integer> evictedQueue = recentlyEvicted[pid];
                 Set<Integer> evictedSet = evictedPageSets[pid];
 
-                // Wykonuejemy c żądań lub dopóki proces ma żądania
                 int requestsProcessed = 0;
-                while (requestsProcessed < c && currentIndex[pid] < process.requests.size()) {
 
+                while (requestsProcessed < c && currentIndex[pid] < process.requests.size()) {
                     Page request = process.requests.get(currentIndex[pid]);
 
-                    // Dodaj to żądanie do bufora ostatnich deltaT żądań
+                    // Dodaję żądanie do bufora ostatnich - do obliczania WSS
                     recentRequests[pid].add(request.id);
                     if (recentRequests[pid].size() > deltaT) {
                         recentRequests[pid].remove(0);
                     }
 
-                    // odwołanie do strony
+                    // Szukam strony w ramkach – jeśli jest, to hit
                     boolean hit = false;
                     for (Page frame : frames) {
                         if (frame.id == request.id) {
@@ -112,27 +107,39 @@ public class ZoneModelAlgorithm extends BaseAlgorithm {
                         }
                     }
 
-                    // Sprawdzamy szamotanie
-                    if (!hit && evictedSet.contains(request.id)) {
-                        thrashingCount++;
+                    // aktualizuję historię błędów stron
+                    boolean wasFault = !hit;
+                    faultHistory[pid].add(wasFault);
+                    if (faultHistory[pid].size() > deltaT) {
+                        faultHistory[pid].poll();
+                    }
+
+                    //szamotania
+                    if (!hit) {
+                        int recentFaults = 0;
+                        for (boolean fault : faultHistory[pid]) if (fault) recentFaults++;
+                        double faultRate = (double) recentFaults / faultHistory[pid].size();
+                        if (faultRate > 0.8 && evictedSet.contains(request.id)) {
+                            thrashingCount++;
+                        }
                     }
 
                     if (!hit) {
                         errsTotal++;
 
-                        // Obsługa błędu strony
+                        // Dodaję nową stronę do RAM – po to, żeby zasymulować faktyczne załadowanie jej do pamięci
                         if (frames.size() < allocatedFrames[pid]) {
                             frames.add(new Page(request.id, 0, pid));
-                        } else if (allocatedFrames[pid] > 0) {
-                            // LRU - usuń najmniej ostatnio używaną stronę
+                        } else {
+                            // Pamięć pełna – usuwam stronę LRU
+                            //bierzemy stronę, która była najmniej używana
                             frames.sort(Comparator.comparingInt(p -> p.lastUsed));
                             int evictedPageId = frames.get(0).id;
                             frames.remove(0);
 
-                            // Dodaj usuniętą stronę do bufora
+                            // Zapisuję usuniętą stronę do struktur pomocniczych
                             evictedQueue.add(evictedPageId);
                             evictedSet.add(evictedPageId);
-
                             if (evictedQueue.size() > THRASHING_WINDOW) {
                                 int oldPageId = evictedQueue.poll();
                                 if (!evictedQueue.contains(oldPageId)) {
@@ -140,31 +147,29 @@ public class ZoneModelAlgorithm extends BaseAlgorithm {
                                 }
                             }
 
+                            // Dodajęmy nową stronę do RAM po to, żeby odwzorować jej załadowanie po błędzie strony
                             frames.add(new Page(request.id, 0, pid));
                         }
                     }
+
                     currentIndex[pid]++;
                     requestsProcessed++;
-
                 }
 
-
-                // Sprawdzamy, czy proces zakończył wszystkie żądania
+                // Sprawdzam, czy proces zakończył wszystkie żądania
                 if (currentIndex[pid] >= process.requests.size()) {
                     active[pid] = false;
                     finished[pid] = true;
-                    // Zwalniamy ramki procesu
-                    allocatedFrames[pid] = 0;
-                    framesByProcess.remove(pid);
+                    allocatedFrames[pid] = 0; // Zwalniam jego ramki
+                    framesByProcess.remove(pid); // Usuwam jego dane z mapy
                 }
             }
 
-            //--------- Obliczamy WSS dla każdego procesu------------
+            // Obliczam WSS (Working Set Size) dla każdego procesu ile unikalnych stron używał w ostatnim deltaT
             int totalWSS = 0;
             for (int pid = 0; pid < processesCount; pid++) {
                 if (finished[pid]) continue;
 
-                // Obliczamy WSS tylko jeśli mamy wystarczająco danych
                 if (!recentRequests[pid].isEmpty()) {
                     Set<Integer> uniquePages = new HashSet<>(recentRequests[pid]);
                     processWss[pid] = Math.max(1, uniquePages.size());
@@ -175,7 +180,7 @@ public class ZoneModelAlgorithm extends BaseAlgorithm {
                 }
             }
 
-            // Sprawdzamy czy wszystkie procesy zakończyły pracę
+            // Sprawdzam, czy wszystkie procesy zakończyły działanie
             allProcessesDone = true;
             for (int i = 0; i < processesCount; i++) {
                 if (!finished[i]) {
@@ -185,16 +190,16 @@ public class ZoneModelAlgorithm extends BaseAlgorithm {
             }
             if (allProcessesDone) break;
 
-            // --------------------czy suma WSS przekracza dostępne ramki-----------------------
+            // Sprawdzam czy wystarczy ramek na WSS każdego aktywnego procesu
             if (totalWSS <= framesCount) {
-                // Jeśli wystarczy ramek, każdy proces dostaje tyle, ile wynosi jego WSS
+                // Przydzielam każdemu procesowi dokładnie tyle ramek, ile potrzebuje (jego WSS)
                 for (int pid = 0; pid < processesCount; pid++) {
                     if (active[pid] && !finished[pid]) {
                         allocatedFrames[pid] = processWss[pid];
                     }
                 }
             } else {
-                // Jeśli brakuje ramek, wstrzymujemy proces o największym WSS
+                // Jeśli ramek jest za mało – wybieram proces o największym WSS do zawieszenia
                 int maxWssPid = -1;
                 int maxWssValue = -1;
 
@@ -206,21 +211,20 @@ public class ZoneModelAlgorithm extends BaseAlgorithm {
                 }
 
                 if (maxWssPid != -1) {
-                    // Wstrzymajemy proces o największym WSS
+                    // Zawieszam proces z największym WSS
                     active[maxWssPid] = false;
                     suspended[maxWssPid] = true;
                     suspensionCount++;
 
-                    // Zwolniamy ramki tego procesu
                     int freedFrames = allocatedFrames[maxWssPid];
                     allocatedFrames[maxWssPid] = 0;
 
-                    // Redystrybuujemy zwolnione ramki
+                    // Redystrybuuję jego ramki do innych procesów (proporcjonalnie do ich WSS)
                     if (totalWSS > maxWssValue) {
                         totalWSS -= maxWssValue;
                         redistributeFrames(allocatedFrames, processWss, active, finished, freedFrames, totalWSS);
                     } else {
-                        // Jeśli został tylko jeden proces, dajemy mu wszystkie zwolnione ramki
+                        // Jeśli został jeden aktywny proces – daję mu wszystko
                         for (int pid = 0; pid < processesCount; pid++) {
                             if (active[pid] && !finished[pid]) {
                                 allocatedFrames[pid] += freedFrames;
@@ -234,6 +238,7 @@ public class ZoneModelAlgorithm extends BaseAlgorithm {
 
         return errsTotal;
     }
+
 
     /**
      * Oblicza liczbę dostępnych (wolnych) ramek pamięci

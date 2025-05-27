@@ -5,15 +5,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class ProportionalAlgorithm extends BaseAlgorithm {
-//    public ProportionalAlgorithm(int framesCount, int requestCount, int maxID, int processesCount,
-//                                 double ppfPercentage, int zoneCoef,
-//                                 double localProbability, int localCount, int localSubset) {
-//        super(framesCount, requestCount, maxID, processesCount,
-//                ppfPercentage, zoneCoef,
-//                localProbability, localCount, localSubset);
-//    }
 
-    // Nowy konstruktor
     public ProportionalAlgorithm(int framesCount, int requestCount, int maxID, int processesCount,
                                  double ppfPercentage, double lower, int zoneCoef,
                                  double localProbability, int localCount, int localSubset,
@@ -26,7 +18,6 @@ public class ProportionalAlgorithm extends BaseAlgorithm {
     @Override
     public int execute() {
         int errs = 0;
-        // Obliczanie sumy unikalnych stron dla wszystkich procesów
         long totalUniquePagesSum = 0;
         List<Proces> currentProcesses = deepCopyProcesses();
         List<Integer> uniquePagesPerProcess = new ArrayList<>();
@@ -40,8 +31,8 @@ public class ProportionalAlgorithm extends BaseAlgorithm {
             totalUniquePagesSum += uniquePageIds.size();
         }
 
-        if (totalUniquePagesSum == 0) { // Zabezpieczenie przed dzieleniem przez zero
-            // Jeśli nie ma żadnych żądań lub unikalnych stron, przydziel równo lub minimalnie
+        if (totalUniquePagesSum == 0) {
+            // Jeśli nie ma żadnych żądań lub unikalnych stron, przydzielamy równo lub minimalnie
             int equalShare = Math.max(1, framesCount / (processesCount > 0 ? processesCount : 1));
             for (Proces p : currentProcesses) {
                  errs += lruList(p.requests, equalShare);
