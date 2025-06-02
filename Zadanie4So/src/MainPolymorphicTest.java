@@ -13,7 +13,7 @@ public class MainPolymorphicTest {
         final int MAX_LOCAL_SUBSET = 50;
         double[] upperPPF = {0.6, 0.7, 0.9};
         double[] lowerPPF = {0.1, 0.2, 0.3};
-        int[] wssSizes = { 50, 100,200,250,300,400,500,600,700,800,900,1000, 2000, 10000};
+        int[] wssSizes = { 50,250,500,800,2000};
 
         System.out.println("Format komórki: PageFaults / Thrashing / suspensions");
         System.out.printf("%5s %5s %10s", "upper", "lower", "WSSDeltaT");
@@ -62,6 +62,10 @@ public class MainPolymorphicTest {
                     int pageFaults = alg.execute();
                     int thrashing = alg.getThrashing();
                     int suspended = alg.getSuspensions();
+
+                    if(alg instanceof ZoneModelAlgorithm){
+                        //if(Proce)
+                    }
 
                     System.out.printf(" %10d / %-5d / %1d", pageFaults, thrashing, suspended);
                 }

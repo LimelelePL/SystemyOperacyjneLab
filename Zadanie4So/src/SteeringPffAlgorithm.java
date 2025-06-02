@@ -199,7 +199,6 @@ public class SteeringPffAlgorithm extends BaseAlgorithm {
                 }
                 double ppf = pageFaultWindow[pid].isEmpty() ? 0.0 : ((double)faultsInWindow / pageFaultWindow[pid].size());
 
-                // Decyzja: co zrobić z przydziałem ramek na podstawie PPF
 
                 if (ppf > upper) {
                     // PPF za wysokie – dodajemy ramkę, jeśli są wolne
