@@ -1,15 +1,6 @@
 import java.util.*;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-/*
- *  - Każdy węzeł (Node) mieści maksymalnie t-1 kluczy i t dzieci (dla węzłów wewnętrznych),
- *    lub t-1 kluczy + t wartości (dla liści).
- *  - Nie ma sibling pointers (by uprościć swizzling): od jednego węzła liścia do skanu trzeba iść od korzenia.
- *  - Klucze: long; wartości: long (downstream wartość w liściu).
- *  - Każdy węzeł przechowuje Swip do swojej strony na dysku (nieswizzlowany, aż do fetchPage).
- *  - Przy wstawianiu i wyszukiwaniu: jeżeli podczas nawigacji napotkamy nieswizzlowany Swip, to
- *    robi się fetchPage, swizzle, i latchowanie strony. Po zakończeniu operacji, unlatch.
- */
 
 public class BPlusTree {
     private final int t;
@@ -20,18 +11,15 @@ public class BPlusTree {
     // Mapa pageId, obiekt Node (w pamięci), by przy swizzlingu powiązać stronę z Node
     private final Map<Long, Node> pageToNode = new HashMap<>();
 
+    Random rand=new Random();
     public BPlusTree(int t, BufferManager bm) {
         this.t = t;
         this.bufferManager = bm;
-
-        // tworzymy nową stronę Korzenia od razu (pageId=1, sizeClass=0)
-        Page rootPage = new Page(1L, 0);
-        //  Dodajemy ją do bufora fetchPage -> swizzle
-        bufferManager.fetchPage(1L, 0);
-        // tworzymy Swip swizzlowany dla tej strony
+        int size=rand.nextInt(0,1);
+        Page rootPage = new Page(1L, size);
+        bufferManager.fetchPage(1L, size);
         this.rootSwip = new Swip(rootPage);
 
-        // tworzymy root w pamięci i w pageToNode
         Node rootNode = new Node(true);
         rootNode.myPage = rootPage;
         pageToNode.put(1L, rootNode);
@@ -45,8 +33,8 @@ public class BPlusTree {
     private class Node {
         final boolean isLeaf;
         final List<Long> keys = new ArrayList<>();
-        final List<Long> values = new ArrayList<>();    // tylko dla liści
-        final List<Swip> children = new ArrayList<>();  // tylko dla węzłów wewnentrznyvc
+        final List<Long> values = new ArrayList<>();
+        final List<Swip> children = new ArrayList<>();
         Page myPage;
 
         Node(boolean isLeaf) {
@@ -74,8 +62,9 @@ public class BPlusTree {
 
                 // Stwórz nową fizyczną stronę dla nowego korzenia
                 long newRootId = generateNewPageId();
-                Page newRootPage = new Page(newRootId, 0);
-                bufferManager.fetchPage(newRootId, 0);
+                int s=rand.nextInt(0,1);
+                Page newRootPage = new Page(newRootId, s);
+                bufferManager.fetchPage(newRootId, s);
                 swizzleNode(newRoot, newRootPage);
 
                 // Zaktualizuj Swip korzenia
@@ -98,6 +87,7 @@ public class BPlusTree {
 
     private Long searchRecursive(Swip currentSwip, long key) {
         Node node = loadNode(currentSwip);
+
         if (node == null) return null;
 
         node.myPage.latchShared();
@@ -147,7 +137,6 @@ public class BPlusTree {
                     persistNode(node);
                     return null;
                 }
-                //  musimy splitnąć liść
                 int mid = node.keys.size() / 2;
                 Node right = new Node(true);
                 List<Long> rightKeys = new ArrayList<>(node.keys.subList(mid, node.keys.size()));
@@ -155,15 +144,15 @@ public class BPlusTree {
                 right.keys.addAll(rightKeys);
                 right.values.addAll(rightVals);
 
-                // Przytnij lewy do [0..mid-1]
                 node.keys.subList(mid, node.keys.size()).clear();
                 node.values.subList(mid, node.values.size()).clear();
 
-                // Zapisz obie strony na dysk (nowe pageId dla prawej strony)
+                // Zapisujemy obie strony na dysk
                 persistNode(node); // nadpisz lewego (jego myPage już istnieje)
                 long rightId = generateNewPageId();
-                Page rightPage = new Page(rightId, 0);
-                bufferManager.fetchPage(rightId, 0);
+                int s1=rand.nextInt(0,1);
+                Page rightPage = new Page(rightId, s1);
+                bufferManager.fetchPage(rightId, s1);
                 swizzleNode(right, rightPage);
 
                 long pivot = right.keys.get(0);
@@ -182,7 +171,7 @@ public class BPlusTree {
                     persistNode(node);
                     return null;
                 }
-                // → dziecko splitnęło się: wstaw pivotKey i dwie Swipy
+                // dziecko splitnęło się: wstaw pivotKey i dwie Swipy
                 int pos = Collections.binarySearch(node.keys, sr.pivotKey);
                 int insertPos = (pos >= 0) ? pos + 1 : -pos - 1;
                 node.keys.add(insertPos, sr.pivotKey);
@@ -192,17 +181,15 @@ public class BPlusTree {
                     persistNode(node);
                     return null;
                 }
-                // → split węzła wewnętrznego
+                // split węzła wewnętrznego
                 int mid = node.keys.size() / 2;
                 long pivotUp = node.keys.get(mid);
 
                 Node right = new Node(false);
-                // przenieś klucze [mid+1..end] do prawego
                 List<Long> rightKeys = new ArrayList<>(node.keys.subList(mid + 1, node.keys.size()));
                 right.keys.addAll(rightKeys);
                 node.keys.subList(mid, node.keys.size()).clear(); // usuwamy pivot i prawą część
 
-                // przenieś dzieci [mid+1..end]
                 List<Swip> rightChildren = new ArrayList<>(node.children.subList(mid + 1, node.children.size()));
                 right.children.addAll(rightChildren);
                 node.children.subList(mid + 1, node.children.size()).clear();
@@ -210,8 +197,9 @@ public class BPlusTree {
                 // Zapisywanie obu stron
                 persistNode(node);
                 long rightId = generateNewPageId();
-                Page rightPage = new Page(rightId, 0);
-                bufferManager.fetchPage(rightId, 0);
+                int s2=rand.nextInt(0,1);
+                Page rightPage = new Page(rightId, s2);
+                bufferManager.fetchPage(rightId, s2);
                 swizzleNode(right, rightPage);
 
                 Swip leftSwip = new Swip(node.myPage);
@@ -246,8 +234,6 @@ public class BPlusTree {
 
             Node node = pageToNode.get(pid);
             if (node == null) {
-                // Zakładamy, że jeśli strona „wcześniej nie istniała w pageToNode”,
-                // to to jest nowy liść.
                 node = new Node(true);
                 node.myPage = p;
                 pageToNode.put(pid, node);
@@ -286,32 +272,27 @@ public class BPlusTree {
      * Od-swizzlowanie oznacza: zastąp Swip(Page) → Swip(pageId, sizeClass=0).
      */
     public void unswizzleTree() {
-        // Root też musi być „nieswizzlowany”
         Node rootNode = loadNode(rootSwip);
         if (rootNode == null) return;
+        int s4= rand.nextInt(0,1);
 
-        // rootSwip -> Swip(pageId, 0)
         long rootPageId = rootNode.myPage.pageId;
-        this.rootSwip = new Swip(rootPageId, 0);
+        this.rootSwip = new Swip(rootPageId, s4);
 
-      //reszta drzewa
         unswizzleNodeRecursively(rootSwip);
     }
 
     private void unswizzleNodeRecursively(Swip swip) {
-        // Ten krok wymusi, żeby loadNode widziało Swip nieswizzlowany
         Node node = loadNode(swip);
         if (node == null) return;
 
-        // Dla każdego dziecka: zastąp Swip dziecka → Swip(pageId, 0), a potem rekurencja
         if (!node.isLeaf) {
             for (int i = 0; i < node.children.size(); i++) {
                 Swip childSwip = node.children.get(i);
-                // W childSwip mamy albo Swip(Page), albo Swip(pageId,0). Zawsze chcemy nowy Swip(pageId,0)
                 long childPageId = loadNode(childSwip).myPage.pageId;
-                Swip newChildSwip = new Swip(childPageId, 0);
+                int s3= rand.nextInt(0,1);
+                Swip newChildSwip = new Swip(childPageId, s3);
                 node.children.set(i, newChildSwip);
-                // Wywołaj rekursywnie dla tego dziecka
                 unswizzleNodeRecursively(newChildSwip);
             }
         }

@@ -22,8 +22,8 @@ public class Simulation {
         int[] bufferSizes = {256, 512, 1024, 2048, 4096};
         int[] bTreeOrders = {16, 32, 64, 128};
         final int repetitions = 5;
-        final int totalInserts = 200_000;
-        final int searchesPerThread = 20_000;
+        final int totalInserts = 200000;
+        final int searchesPerThread = 20000;
         int[] threadCounts = {1, 8, 16};
 
         for (int numSearchThreads : threadCounts) {

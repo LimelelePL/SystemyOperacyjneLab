@@ -5,7 +5,7 @@ public class Swip {
     private final int sizeClass;   // ważne tylko gdy isSwizzled==false
     private final Page pageRef;    // ważne tylko gdy isSwizzled==true
 
-    /** Konstruktor dla nieswizzlowanego (trzyma pageId+sizeClass) */
+    // Konstruktor dla nieswizzlowanego
     public Swip(long pageId, int sizeClass) {
         this.isSwizzled = false;
         this.pageId = pageId;
@@ -13,7 +13,7 @@ public class Swip {
         this.pageRef = null;
     }
 
-    /** Konstruktor dla swizzlowanego (trzymaj referencję Page) */
+    // Konstruktor dla swizzlowanego (trzyma referencję Page)
     public Swip(Page p) {
         this.isSwizzled = true;
         this.pageId = -1;

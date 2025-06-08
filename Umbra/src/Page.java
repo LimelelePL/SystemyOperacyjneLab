@@ -3,7 +3,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public class Page {
     public final long pageId;
     public final int sizeClass;
-    public final byte[] data; // TODO ALE TEZ NIE TRZEBA RACZEJ
+    public final byte[] data; // TODO ALE TEZ NIE TRZEBA RACZEJ (nie
     private final ReentrantReadWriteLock latch = new ReentrantReadWriteLock(true);
 
     public Page(long pageId, int sizeClass) {

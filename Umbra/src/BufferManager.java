@@ -5,21 +5,10 @@ import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
-/**
- * Uproszczony Buffer Manager z:
- *  - zmiennymi rozmiarami stron (tu: 2 klasy: 0=>4KB, 1=>8KB)
- *  - ograniczoną liczbą buforowanych ramek (maxFrames)
- *  - prostym FIFO do eviction
- *  - licznikami hit/miss/evict
- *  - pointer swizzling: jeżeli strona jest w buforze, zwracamy Swip z Page referecją, w przeciwnym razie 
- *    zwracamy Swip nieswizzlowany (pageId+sizeClass) i w countMiss++.
- */
 public class BufferManager {
     private final int maxFrames;
     private final Map<Long, Page> frameMap = new ConcurrentHashMap<>();
-    // pageId -> Page (tylko aktualnie załadowane)
     private final Deque<Long> fifo = new ArrayDeque<>();
-    // kolejka FIFO: kolejność ładowania stron (pageId)
     private final AtomicLong countHit = new AtomicLong(0);
     private final AtomicLong countMiss = new AtomicLong(0);
     private final AtomicLong countEvict = new AtomicLong(0);
@@ -35,7 +24,7 @@ public class BufferManager {
      *
      *tak wiem zapomnialem zwrocic evicty w wynikachchewhcweuchweuchuwechuwehc
      */
-    Random random = new Random();
+    Random rand=new Random();
     public Swip fetchPage(long pageId, int sizeClass) {
         Page p = frameMap.get(pageId);
         if (p != null) {
@@ -51,7 +40,7 @@ public class BufferManager {
                 // Evicja FIFO
                 Long victimId = fifo.removeFirst();
                 Page victim = frameMap.remove(victimId);
-                // symulujemy zapis na dysk (pwrite)
+                // symulujemy zapis na dysk
                 countEvict.incrementAndGet();
             }
             // ladujemy nową stronę z "dysku"
