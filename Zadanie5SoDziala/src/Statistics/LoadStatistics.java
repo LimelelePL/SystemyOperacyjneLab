@@ -3,24 +3,35 @@ package Statistics;
 import Processor.Processor;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class LoadStatistics {
-    // Przechowuję średnie obciążenia i odchylenia standardowe w czasie
-    // bo potrzebuję analizować zmienność obciążenia w trakcie symulacji
-    private List<Double> averageLoads = new ArrayList<>();
-    private List<Double> standardDeviations = new ArrayList<>();
+    // Przechowuję sumy ważone czasem oraz całkowity czas,
+    // bo potrzebuję analizować zmienność obciążenia w trakcie symulacji uwzględniając czas trwania każdego stanu.
+    private double weightedLoadSum;
+    private double weightedVarianceSum;
+    private int totalTimeElapsed;
 
-    // Zbieram statystyki, bo potrzebuję monitorować zmiany obciążenia procesorów w czasie
-    public void collectStatistics(ArrayList<Processor> processors) {
-        double avg = calculateAverageLoad(processors);
-        double stdDev = calculateStandardDeviation(processors, avg);
-
-        averageLoads.add(avg);
-        standardDeviations.add(stdDev);
+    public LoadStatistics() {
+        this.weightedLoadSum = 0.0;
+        this.weightedVarianceSum = 0.0;
+        this.totalTimeElapsed = 0;
     }
 
-    // Obliczam średnie obciążenie, bo to podstawowa miara efektywności dystrybucji zadań
+    // Zbieram statystyki, uwzględniając czas trwania danego stanu (ticka)
+    public void collectStatistics(ArrayList<Processor> processors, int timeForThisTick) {
+        if (timeForThisTick <= 0) {
+            return; // Nie zbieraj statystyk, jeśli czas się nie zmienił lub jest niepoprawny
+        }
+
+        double currentAverage = calculateAverageLoad(processors);
+        double currentVariance = calculateVariance(processors, currentAverage);
+
+        this.weightedLoadSum += currentAverage * timeForThisTick;
+        this.weightedVarianceSum += currentVariance * timeForThisTick;
+        this.totalTimeElapsed += timeForThisTick;
+    }
+
+    // Obliczam średnie obciążenie dla bieżącego stanu
     private double calculateAverageLoad(ArrayList<Processor> processors) {
         return processors.stream()
                 .mapToDouble(Processor::getLoad)
@@ -28,30 +39,28 @@ public class LoadStatistics {
                 .orElse(0.0);
     }
 
-    // Obliczam odchylenie standardowe, bo to miara równomierności rozłożenia obciążenia
-    // Niskie odchylenie oznacza lepszą równowagę obciążenia między procesorami
-    private double calculateStandardDeviation(ArrayList<Processor> processors, double average) {
-        double variance = processors.stream()
+    // Obliczam wariancję dla bieżącego stanu
+    private double calculateVariance(ArrayList<Processor> processors, double average) {
+        return processors.stream()
                 .mapToDouble(p -> Math.pow(p.getLoad() - average, 2))
                 .average()
                 .orElse(0.0);
-        return Math.sqrt(variance);
     }
 
-    // Obliczam średnią z wszystkich pomiarów, bo potrzebuję podsumować wyniki całej symulacji
+    // Obliczam średnią ważoną czasem z wszystkich pomiarów
     public double getFinalAverage() {
-        return averageLoads.stream()
-                .mapToDouble(Double::doubleValue)
-                .average()
-                .orElse(0.0);
+        if (totalTimeElapsed == 0) {
+            return 0.0;
+        }
+        return weightedLoadSum / totalTimeElapsed;
     }
 
-    // Obliczam średnie odchylenie z całej symulacji, bo to pozwala ocenić
-    // stabilność rozkładu obciążenia w czasie
+    // Obliczam odchylenie standardowe na podstawie średniej ważonej czasem wariancji
     public double getFinalStandardDeviation() {
-        return standardDeviations.stream()
-                .mapToDouble(Double::doubleValue)
-                .average()
-                .orElse(0.0);
+        if (totalTimeElapsed == 0) {
+            return 0.0;
+        }
+        double meanWeightedVariance = weightedVarianceSum / totalTimeElapsed;
+        return Math.sqrt(meanWeightedVariance);
     }
 }

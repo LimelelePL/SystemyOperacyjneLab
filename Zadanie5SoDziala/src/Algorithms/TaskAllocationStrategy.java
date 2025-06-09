@@ -18,7 +18,7 @@ public abstract class TaskAllocationStrategy {
 
     // Inicjalizuję statystyki, bo potrzebuję zbierać dane o wydajności algorytmów
     private LoadStatistics statistics = new LoadStatistics();
-    private int statisticsInterval = 1; // Co ile zadań zbierać statystyki
+    // private int statisticsInterval = 1; // Usunięto - statystyki zbierane co tick
     private int queries = 0; // Licznik zapytań o obciążenie
     private int migrations = 0; // Licznik migracji procesów
 
@@ -61,12 +61,13 @@ public abstract class TaskAllocationStrategy {
 
     // Wyświetlam wyniki symulacji, bo chcę porównać skuteczność strategii
     protected void printStatistics() {
-        System.out.println("\n======== " + this.getClass().getSimpleName() + " ========");
-        System.out.println("Ilość zapytań: " + getQueries());
-        System.out.println("Ilość migracji: " + getMigrations());
-        System.out.printf("Średnie obciążenie: %.2f%%\n", statistics.getFinalAverage());
-        System.out.printf("Odchylenie standardowe: %.2f%%\n", statistics.getFinalStandardDeviation());
-        System.out.println("Liczba wstrzymanych/odrzuconych zadań: " + getSuspendedTasks());
+//        System.out.println("\n======== " + this.getClass().getSimpleName() + " ========");
+//        System.out.println("Ilość zapytań: " + getQueries());
+//        System.out.println("Ilość migracji: " + getMigrations());
+//        System.out.printf("Średnie obciążenie (ważone czasem): %.2f%%\n", statistics.getFinalAverage());
+//        System.out.printf("Odchylenie standardowe (ważone czasem): %.2f%%\n", statistics.getFinalStandardDeviation());
+//        System.out.println("Liczba wstrzymanych/odrzuconych zadań: " + getSuspendedTasks());
+//        System.out.println("Całkowity czas symulacji: " + getCurrentTime() + " jednostek czasu");
     }
 
     public boolean processorsHaveTasks() {
@@ -149,11 +150,19 @@ public abstract class TaskAllocationStrategy {
         this.statistics = statistics;
     }
 
-    public int getStatisticsInterval() {
-        return statisticsInterval;
-    }
-
-    public void setStatisticsInterval(int statisticsInterval) {
-        this.statisticsInterval = statisticsInterval;
+    public void updateTasksAndLoadForAllProcessors(int timeElapsedThisCycle) {
+        for (Processor processor : getProcessors()) {
+            if (!processor.getTasks().isEmpty()) {
+                ArrayList<Task> tasksOnProcessor = processor.getTasks();
+                for (int i = tasksOnProcessor.size() - 1; i >= 0; i--) {
+                    Task task = tasksOnProcessor.get(i);
+                    task.setRemainingTime(task.getRemainingTime() - timeElapsedThisCycle);
+                    if (task.getRemainingTime() <= 0) {
+                        processor.setLoad(processor.getLoad() - task.getLoad());
+                        tasksOnProcessor.remove(i);
+                    }
+                }
+            }
+        }
     }
 }
