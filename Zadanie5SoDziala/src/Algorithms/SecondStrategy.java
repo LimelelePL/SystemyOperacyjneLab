@@ -22,78 +22,67 @@ public class SecondStrategy extends TaskAllocationStrategy {
         while (!getTasks().isEmpty() || processorsHaveTasks()) {
 
             incrementCurrentTime(1);
-            getStatistics().collectStatistics(getProcessors(), 1); // Statystyki dla podstawowej jednostki czasu
-            // Symuluję upływ czasu, bo każde zadanie trwa co najmniej 1 jednostkę czasu
+            getStatistics().collectStatistics(getProcessors(), 1);
 
             if (!getTasks().isEmpty()) {
-
-                // Pętla obsługująca oczekiwanie na kolejne zadanie, aktualizująca statystyki co jednostkę czasu
-                while (!getTasks().isEmpty() && getTasks().getFirst().getArrivalTime() > getCurrentTime()) {
+                while (!canGetTask()) {
                     incrementCurrentTime(1);
                     updateTasksAndLoadForAllProcessors(1);
                     getStatistics().collectStatistics(getProcessors(), 1);
                 }
                 
-                if (!getTasks().isEmpty() && getTasks().getFirst().getArrivalTime() <= getCurrentTime()) {
+                if (canGetTask()) {
                     int attempts = 0;
                     Task currentTask = getTasks().getFirst();
-                    // Losuję procesor, bo w strategii 2 zadanie najpierw pojawia się na losowym procesorze
+                    // Losuję pierwszy procesor
                     Processor firstProcessor = getProcessors().get(random.nextInt(getProcessorsCount()));
-                    setQueries(getQueries() + 1); // Zapytanie do pierwszego procesora
+                    setQueries(getQueries() + 1);
 
-                    // Sprawdzam, czy wylosowany procesor może przyjąć zadanie
-                    // bez przekroczenia progu P i bez przekroczenia 100% obciążenia
-                    if (firstProcessor.getLoad() < getUpperLimit() && firstProcessor.getLoad() + currentTask.getLoad() <= 100) {
-                        // Przydzielam zadanie do pierwszego procesora, bo spełnia on warunki
+                    // Sprawdzamy czy pierwszy procesor może przyjąć zadanie
+                    if (canAssignTask(firstProcessor, currentTask)) {
                         firstProcessor.getTasks().add(currentTask);
                         firstProcessor.setLoad(firstProcessor.getLoad() + currentTask.getLoad());
                         getTasks().removeFirst();
                     } else {
-                        // Jeśli pierwszy procesor nie może przyjąć zadania, szukam innego
+                      //szukamy innego
                         boolean taskAssigned = false;
 
-                        // Próbuję logarytmiczną liczbę razy względem liczby procesorów
-                        // bo taką heurystykę przyjąłem dla efektywnego wyszukiwania
+                        // Próbujemy logarytmiczną liczbę razy względem liczby procesorów
                         while (!taskAssigned && attempts < Math.log(getProcessorsCount())) {
-                            // Losuję procesor, bo szukamy dowolnego z obciążeniem < P
+                            // Losujęmy procesor z obciążeniem < P
                             Processor currentProcessor = getProcessors().get(random.nextInt(getProcessorsCount()));
-                            setQueries(getQueries() + 1); // Zwiększam licznik zapytań
+                            setQueries(getQueries() + 1);
 
-                            // Sprawdzam, czy procesor może przyjąć zadanie
-                            if (currentProcessor.getLoad() < getUpperLimit() && currentProcessor.getLoad() + currentTask.getLoad() <= 100) {
-                                // Przydzielam zadanie, bo znalazłem odpowiedni procesor
+                            if (canAssignTask(currentProcessor, currentTask)) {
                                 currentProcessor.getTasks().add(currentTask);
                                 currentProcessor.setLoad(currentProcessor.getLoad() + currentTask.getLoad());
                                 getTasks().removeFirst();
                                 taskAssigned = true;
-
-                                // Zwiększam licznik migracji, bo zadanie zostało przeniesione na inny procesor
                                 setMigrations(getMigrations() + 1);
                             } else {
-                                // Zwiększam licznik prób, bo ta próba się nie powiodła
                                 attempts++;
-                                incrementCurrentTime(1); // Symuluję upływ czasu, bo każde zapytanie trwa co najmniej 1 jednostkę czasu
+                                incrementCurrentTime(1);
                                 updateTasksAndLoadForAllProcessors(1);
-                                getStatistics().collectStatistics(getProcessors(), 1); // Statystyki dla czasu próby
+                                getStatistics().collectStatistics(getProcessors(), 1);
                             }
                         }
                         if (!taskAssigned) {
                             incrementSuspendedTasks();
-                            getTasks().removeFirst(); // Usuwamy zawieszone zadanie z kolejki
+                            getTasks().removeFirst();
                         }
                     }
                 }
             }
-
-
             updateTasksAndLoadForAllProcessors(1);
-            // Usunięto końcowe zbieranie statystyk dla timeElapsedThisCycle
-            // getStatistics().collectStatistics(getProcessors(), timeElapsedThisCycle);
         }
-
-        // Zbieram końcowe statystyki i wypisuję wyniki symulacji
-        // Usunięto getStatistics().collectStatistics(getProcessors());
         printStatistics();
-        // Usunięto System.out.println("czas " + getCurrentTime() + " ms");
+    }
+
+    private boolean canAssignTask(Processor processor, Task task) {
+        return processor.getLoad() < getUpperLimit() && processor.getLoad() + task.getLoad() <= 100;
+    }
+
+    private boolean canGetTask() {
+        return !getTasks().isEmpty() && getTasks().getFirst().getArrivalTime() <= getCurrentTime();
     }
 }

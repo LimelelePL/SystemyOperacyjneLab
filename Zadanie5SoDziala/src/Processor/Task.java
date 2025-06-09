@@ -2,11 +2,10 @@ package Processor;
 
 public class Task {
     private boolean wasSuspended = false;
-    private int load; // Obciążenie, jakie zadanie wprowadza na procesor
-    private int remainingTime;// Pozostały czas wykonania zadania
-    private int arrivalTime; // Czas przybycia zadania, jeśli potrzebny do symulacji
+    private int load;
+    private int remainingTime;
+    private int arrivalTime;
 
-    // Konstruktor z parametrami, bo potrzebuję tworzyć nowe zadania z określonym obciążeniem i czasem wykonania
     public Task(int load, int remainingTime, int arrivalTime) {
         this.load = load;
         this.remainingTime = remainingTime;
@@ -14,7 +13,6 @@ public class Task {
 
     }
 
-    // Konstruktor kopiujący, bo potrzebuję tworzyć niezależne kopie zadań dla różnych symulacji
     public Task(Task task) {
         this.load = task.load;
         this.remainingTime = task.remainingTime;
@@ -24,7 +22,6 @@ public class Task {
     public boolean wasSuspended() { return wasSuspended; }
     public void setSuspended(boolean value) { wasSuspended = value; }
 
-    // Gettery i settery, bo potrzebuję dostępu do tych pól z zewnątrz
     public int getLoad() {
         return load;
     }

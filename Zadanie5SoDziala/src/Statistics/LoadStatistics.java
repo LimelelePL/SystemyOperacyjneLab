@@ -5,8 +5,7 @@ import Processor.Processor;
 import java.util.ArrayList;
 
 public class LoadStatistics {
-    // Przechowuję sumy ważone czasem oraz całkowity czas,
-    // bo potrzebuję analizować zmienność obciążenia w trakcie symulacji uwzględniając czas trwania każdego stanu.
+
     private double weightedLoadSum;
     private double weightedVarianceSum;
     private int totalTimeElapsed;
@@ -17,10 +16,9 @@ public class LoadStatistics {
         this.totalTimeElapsed = 0;
     }
 
-    // Zbieram statystyki, uwzględniając czas trwania danego stanu (ticka)
     public void collectStatistics(ArrayList<Processor> processors, int timeForThisTick) {
         if (timeForThisTick <= 0) {
-            return; // Nie zbieraj statystyk, jeśli czas się nie zmienił lub jest niepoprawny
+            return;
         }
 
         double currentAverage = calculateAverageLoad(processors);
